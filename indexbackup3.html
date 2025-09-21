@@ -4,11 +4,13 @@
   <meta charset="utf-8" />
   <title>Dawah Luminance</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Your styles live here -->
   <link rel="stylesheet" href="style.css">
+  <style>
+    
+  </style>
 </head>
 <body id="body">
-  <h1>Dawah Luminance 💡 fixed notifications</h1>
+  <h1>Dawah Luminance 💡 v input width 2</h1>
   <div class="hint">One room. Text only. Username is chosen from the link (URL).</div>
 
   <div id="debugform" class="row">
@@ -22,7 +24,7 @@
     <button id="enablePush" type="button">Enable notifications</button>
   </div>
 
-  <!-- Auto-enable banner (appears if refnotification=set still needs a click) -->
+  <!-- Auto-enable banner (shown if refnotification=set needs a gesture) -->
   <div id="notifBanner" class="banner">
     Click to finish enabling notifications for this device:
     <button id="enablePushInline" type="button">Enable now</button>
@@ -32,19 +34,26 @@
   <div id="warn" class="warn"></div>
 
   <div id="messages">Loading…</div>
+<div class="margin">
+
+
+  </div>
 
   <div class="formsend">
-    <form id="form" class="row">
-      <input id="chat" type="text" placeholder="Type message…" maxlength="500" />
-      <button id="sendBtn" type="submit">Send</button>
-    </form>
-  </div>
+  <form id="form" class="row">
+    <input id="chat" type="text" placeholder="Type message…" maxlength="500" />
+    <button type="submit"></button>
+  </form>
+
+</div>
 
   <div class="tiny">
     Debug: SW path <code id="swPathOut"></code> ·
     Permission <code id="permOut"></code> ·
     Token (first 12) <code id="tokOut"></code>
   </div>
+
+  
 
   <script type="module">
     // Firebase (CDN, modular)
@@ -76,7 +85,31 @@
     const messagesEl = document.getElementById('messages');
     const form = document.getElementById('form');
     const chatInput = document.getElementById('chat');
-    const sendBtn = document.getElementById('sendBtn');
+
+        // Scroll to bottom when focusing or leaving the input
+chatInput.addEventListener('focus', () => {
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+});
+chatInput.addEventListener('blur', () => {
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+});
+
+// Listen for the 'focus' event on the input field
+chatInput.addEventListener('focus', function() {
+    // Scroll to the bottom of the page when the input is focused
+    window.scrollTo({
+        top: document.body.scrollHeight,   // Scroll to the bottom of the page
+        behavior: 'smooth'                 // Smooth scrolling
+    });
+});
+
+// Optionally, scroll to the bottom when input loses focus (blur)
+chatInput.addEventListener('blur', function() {
+    window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+    });
+});
     const unameInput = document.getElementById('username');
     const warnEl = document.getElementById('warn');
     const enablePushBtn = document.getElementById('enablePush');
@@ -132,22 +165,12 @@
       }
     }
 
-    function setFormEnabled(enabled) {
-      chatInput.disabled = !enabled;
-      sendBtn.disabled = !enabled;
-      if (enabled) {
-        chatInput.placeholder = "Type message…";
-      } else {
-        chatInput.placeholder = "Messaging disabled";
-      }
-    }
-
     if (!currentUser) {
       console.warn('[auth] URL did not match any profile', { urlusername, refpassword });
       warnEl.textContent = 'Invalid link details. You cannot send messages.';
+      // form.style.display = 'none';
       unameInput.value = '(invalid)';
       unameInput.readOnly = true;
-      setFormEnabled(false);
     } else {
       console.log('[auth] Authenticated as:', currentUser.name);
       unameInput.value = currentUser.name;
@@ -157,7 +180,6 @@
       avatarEl.alt = currentUser.name;
       badgeName.textContent = currentUser.name;
       userBadge.hidden = false;
-      setFormEnabled(true);
     }
 
     // -------------------
@@ -175,33 +197,27 @@
         const name = m.username || '';
         const chat = m.chat || '';
         const img = avatarByName.get(name) || 'default-avatar.png'; // put a default in /images if you want
-
         const row = document.createElement('div');
         row.className = 'msg';
-
         const av = document.createElement('img');
         av.className = 'avatar';
         av.src = `./images/${img}`;
         av.alt = name || 'avatar';
-
         const bubble = document.createElement('div');
         bubble.className = 'bubble';
-
         const nm = document.createElement('div');
         nm.className = 'name';
         nm.textContent = name;
-
         const body = document.createElement('div');
         body.innerHTML = escapeHtml(chat);
-
         bubble.appendChild(nm);
         bubble.appendChild(body);
-
         row.appendChild(av);
         row.appendChild(bubble);
         messagesEl.appendChild(row);
       });
-      scrollMessagesToBottom();
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+       messagesEl.scrollTop = messagesEl.scrollHeight;
     });
 
     // Send message (only if authenticated by URL)
@@ -214,34 +230,32 @@
       }
       const chat = (chatInput.value || '').trim();
       if (!chat) return;
-
       console.debug('[chat] sending', { username: currentUser.name, chat });
       await addDoc(messagesRef, {
         username: currentUser.name,
         chat,
         createdAt: serverTimestamp()
       });
-
       chatInput.value = '';
       chatInput.focus();
-      scrollMessagesToBottom();
-    });
-
-    // Auto-scroll when focusing or leaving the input
-    chatInput.addEventListener('focus', scrollMessagesToBottom);
-    chatInput.addEventListener('blur', scrollMessagesToBottom);
-
-    // On mobile: also nudge the page to bottom when focusing/blur (soft keyboard)
-    chatInput.addEventListener('focus', () => {
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    });
-    chatInput.addEventListener('blur', () => {
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    });
-
-    function scrollMessagesToBottom() {
       messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
+      // Listen for the 'focus' event on the input field
+chatInput.addEventListener('focus', function() {
+    // Scroll to the bottom of the page when the input is focused
+    window.scrollTo({
+        top: document.body.scrollHeight,   // Scroll to the bottom of the page
+        behavior: 'smooth'                 // Smooth scrolling
+    });
+});
+
+// Optionally, scroll to the bottom when input loses focus (blur)
+chatInput.addEventListener('blur', function() {
+    window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+    });
+});
+    });
 
     // -----------------------
     // Push setup + debugging
@@ -267,12 +281,14 @@
         const reg = await navigator.serviceWorker.register(SW_PATH);
         console.debug('[sw] state', reg.installing?.state, reg.active?.state);
 
+        // Some browsers require a user gesture for requestPermission; this may throw if called silently.
         const permission = await Notification.requestPermission();
         permOut.textContent = permission;
         permStatus.textContent = `Permission: ${permission}`;
         console.debug('[push] permission', permission);
         if (permission !== 'granted') {
-          notifBanner.classList.add('show'); // ask for a click if auto attempt failed
+          // Surface the inline banner for a manual click if auto attempt failed.
+          notifBanner.classList.add('show');
           return;
         }
 
@@ -302,15 +318,16 @@
       } catch (err) {
         console.error('[push] enable error', err);
         permStatus.textContent = 'Error enabling notifications. See console.';
+        // Show banner to let user retry with a click
         notifBanner.classList.add('show');
       }
     }
 
-    // Buttons run the same flow
+    // Button + inline banner both run the same flow
     enablePushBtn.addEventListener('click', enablePushFlow);
     enablePushInlineBtn.addEventListener('click', enablePushFlow);
 
-    // If URL asks for notifications, try automatically; if blocked,
+    // If URL asks for notifications, try automatically; if browser blocks,
     // the banner will appear to finish with one click.
     if (refnotification === 'set') {
       enablePushFlow();
@@ -321,10 +338,15 @@
       return String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
     }
 
-    // visibility debugging
+    // Quick visibility log to know if tab is backgrounded
     document.addEventListener('visibilitychange', () => {
       console.debug('[page] visibility', document.visibilityState);
     });
+
+
+
+
+
   </script>
 </body>
 </html>

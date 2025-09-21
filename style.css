@@ -223,7 +223,7 @@ input#chat {
    
     .msg .bubble { flex: 1; }
     .msg .name {font-weight:600;margin-bottom:.15rem;font-size: large;}
-    .avatar {width: 36px;height: 36px;border-radius: 50%;object-fit: cover;border: 1px solid #ddd;}
+    .avatar {width: 36px;height: 36px;border-radius: 50%;object-fit: cover;border: 1px solid #ddd;margin: 0px 3px;}
 
     .row {display: flex;/* gap: 0rem; *//* flex-wrap: wrap; *//* align-items: center; *//* display: none; */}
     input[type="text"] {/* padding: .6rem .7rem; */}
@@ -362,7 +362,7 @@ form#form { /*form holding input */
    display: flex;
    justify-content: space-around;
    align-items: center;
-   border: 2px solid green;
+   /* border: 2px solid green; */
    min-width: 90%;
    width: 100%;
    max-width: 100%;

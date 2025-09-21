@@ -4,10 +4,11 @@
   <meta charset="utf-8" />
   <title>Dawah Luminance</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Your styles live here -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body id="body">
-  <h1>Dawah Luminance 💡 cleaning bugs 1.1</h1>
+  <h1>Dawah Luminance 💡 cleaning bugs 1.0</h1>
   <div class="hint">One room. Text only. Username is chosen from the link (URL).</div>
 
   <div id="debugform" class="row">
@@ -31,14 +32,19 @@
   <div id="warn" class="warn"></div>
 
   <div id="messages">Loading…</div>
-  <div id="buffer" style="margin-top:32px;opacity:0;">Loading</div>
-
+  <div id="buffer" style="margin-top: 32px; opacity: 0;">Loading</div>
   <div class="formsend">
     <form id="form" class="row">
       <input id="chat" type="text" placeholder="Type message…" maxlength="500" />
       <button id="sendBtn" type="submit"></button>
     </form>
   </div>
+
+  <!-- <div class="tiny">
+    Debug: SW path <code id="swPathOut"></code> ·
+    Permission <code id="permOut"></code> ·
+    Token (first 12) <code id="tokOut"></code>
+  </div> -->
 
   <script type="module">
     // Firebase (CDN, modular)
@@ -78,7 +84,6 @@
     const permStatus = document.getElementById('permStatus');
     const notifBanner = document.getElementById('notifBanner');
 
-    // Optional (may not exist — we guard writes)
     const swPathOut = document.getElementById('swPathOut');
     const permOut = document.getElementById('permOut');
     const tokOut = document.getElementById('tokOut');
@@ -90,7 +95,7 @@
     // --------------------------------------------------
     // URL-based access control (username + secret code)
     // --------------------------------------------------
-    // Profiles: [username, imageFileIn/images, secretCode]
+    // Profiles: [username, imageFileIn/images, secretCode(4 digits + 1 letter)]
     const profiles_users = [
       ["Abu", "abu.PNG", "4829Q"],
       ["Chaos", "chaos.PNG", "1937A"],
@@ -110,6 +115,7 @@
       ["safwan", "safwan.PNG", "9204M"],
       ["Salaam Alaykum", "salaamalaykum.PNG", "9205M"],
     ];
+    // Quick map for avatar lookup by name
     const avatarByName = new Map(profiles_users.map(([n, img]) => [n, img]));
 
     const params = new URLSearchParams(window.location.search);
@@ -117,8 +123,9 @@
     const refpassword = (params.get("refpassword") || "").trim();
     const refnotification = (params.get("refnotification") || "").trim().toLowerCase();
 
-    let currentUser = null;
-    for (const [name, img, code] of profiles_users) {
+    let currentUser = null; // { name, img, code }
+    for (let i = 0; i < profiles_users.length; i++) {
+      const [name, img, code] = profiles_users[i];
       if (name === urlusername && code === refpassword) {
         currentUser = { name, img, code };
         break;
@@ -128,33 +135,29 @@
     function setFormEnabled(enabled) {
       chatInput.disabled = !enabled;
       sendBtn.disabled = !enabled;
-      chatInput.placeholder = enabled ? "Type message…" : "Messaging disabled";
+      if (enabled) {
+        chatInput.placeholder = "Type message…";
+      } else {
+        chatInput.placeholder = "Messaging disabled";
+      }
     }
 
-    if (!currentUser && urlusername) {
-      // A username was provided but invalid
+    if (!currentUser) {
       console.warn('[auth] URL did not match any profile', { urlusername, refpassword });
       warnEl.textContent = 'Invalid link details. You cannot send messages.';
-      if (unameInput) {
-        unameInput.value = '(invalid)';
-        unameInput.readOnly = true;
-      }
+      unameInput.value = '(invalid)';
+      unameInput.readOnly = true;
       setFormEnabled(false);
-    } else if (currentUser) {
-      // Valid authenticated user
+    } else {
       console.log('[auth] Authenticated as:', currentUser.name);
-      if (unameInput) {
-        unameInput.value = currentUser.name;
-        unameInput.readOnly = true;
-      }
+      unameInput.value = currentUser.name;
+      unameInput.readOnly = true;
+      // show avatar badge
       avatarEl.src = `./images/${currentUser.img}`;
       avatarEl.alt = currentUser.name;
       badgeName.textContent = currentUser.name;
       userBadge.hidden = false;
       setFormEnabled(true);
-    } else {
-      // No username params at all: just viewing (still allow notifications)
-      setFormEnabled(false);
     }
 
     // -------------------
@@ -162,14 +165,16 @@
     // -------------------
     const messagesRef = collection(db, 'messages');
 
+    // Live view (latest 50) with avatar
     const q = query(messagesRef, orderBy('createdAt','asc'), limit(50));
     onSnapshot(q, (snap) => {
+      console.debug('[chat] snapshot size', snap.size);
       messagesEl.innerHTML = '';
       snap.forEach(doc => {
         const m = doc.data();
         const name = m.username || '';
         const chat = m.chat || '';
-        const img = avatarByName.get(name) || 'default-avatar.png';
+        const img = avatarByName.get(name) || 'default-avatar.png'; // put a default in /images if you want
 
         const row = document.createElement('div');
         row.className = 'msg';
@@ -187,10 +192,11 @@
         nm.textContent = name;
 
         const body = document.createElement('div');
-        body.textContent = chat;
+        body.innerHTML = escapeHtml(chat);
 
         bubble.appendChild(nm);
         bubble.appendChild(body);
+
         row.appendChild(av);
         row.appendChild(bubble);
         messagesEl.appendChild(row);
@@ -201,6 +207,7 @@
     // Send message (only if authenticated by URL)
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      warnEl.textContent = '';
       if (!currentUser) {
         alert('❌ Please enter the correct details in the link.');
         return;
@@ -208,6 +215,7 @@
       const chat = (chatInput.value || '').trim();
       if (!chat) return;
 
+      console.debug('[chat] sending', { username: currentUser.name, chat });
       await addDoc(messagesRef, {
         username: currentUser.name,
         chat,
@@ -219,27 +227,33 @@
       scrollMessagesToBottom();
     });
 
-    // Auto-scroll helpers
-    function scrollMessagesToBottom() {
-      // allow DOM paint, then scroll
-      requestAnimationFrame(() => {
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-      });
-    }
+    // Auto-scroll when focusing or leaving the input
     chatInput.addEventListener('focus', scrollMessagesToBottom);
-    chatInput.addEventListener('blur',  scrollMessagesToBottom);
+    chatInput.addEventListener('blur', scrollMessagesToBottom);
+
+    // On mobile: also nudge the page to bottom when focusing/blur (soft keyboard)
+    chatInput.addEventListener('focus', () => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    });
+    chatInput.addEventListener('blur', () => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    });
+
+    function scrollMessagesToBottom() {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
 
     // -----------------------
-    // Push setup
+    // Push setup + debugging
     // -----------------------
-    const SW_PATH = '/Dawah-Lumen/firebase-messaging-sw.js?v=3';
-    swPathOut && (swPathOut.textContent = SW_PATH); // guarded
-
+    const SW_PATH = '/Dawah-Lumen/firebase-messaging-sw.js?v=3'; // cache-bust
     const VAPID_KEY = 'BNUEVOAAfOuD3NrU9PgnZMWXL42hZqsrSCJqMZUNJtC2cx840YvnSdEFzJEL58-J6p02IHaj3eOe6y-bSCr48XY';
+    swPathOut.textContent = SW_PATH;
 
     async function enablePushFlow() {
       try {
         const supported = await isSupported();
+        console.debug('[push] isSupported', supported);
         if (!supported) {
           permStatus.textContent = 'Push not supported in this browser.';
           return;
@@ -249,23 +263,24 @@
           return;
         }
 
+        console.debug('[sw] registering', SW_PATH);
         const reg = await navigator.serviceWorker.register(SW_PATH);
+        console.debug('[sw] state', reg.installing?.state, reg.active?.state);
 
-        // Only ask if not already granted
-        let permission = Notification.permission;
-        if (permission !== 'granted') {
-          permission = await Notification.requestPermission();
-        }
-        permOut && (permOut.textContent = permission);
+        const permission = await Notification.requestPermission();
+        permOut.textContent = permission;
         permStatus.textContent = `Permission: ${permission}`;
+        console.debug('[push] permission', permission);
         if (permission !== 'granted') {
-          notifBanner.classList.add('show');
+          notifBanner.classList.add('show'); // ask for a click if auto attempt failed
           return;
         }
 
+        // Get FCM token
         const messaging = getMessaging(app);
         const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-        tokOut && (tokOut.textContent = token ? token.slice(0,12) : '');
+        console.debug('[push] token', token);
+        tokOut.textContent = token ? token.slice(0, 12) : '';
         if (token) {
           await addDoc(collection(db, 'tokens'), { token, createdAt: serverTimestamp() });
           permStatus.innerHTML = '<span class="ok">Notifications enabled.</span>';
@@ -275,11 +290,12 @@
           notifBanner.classList.add('show');
         }
 
-        // Foreground notifications
+        // Foreground messages (tab focused)
         onMessage(messaging, (payload) => {
+          console.debug('[push] onMessage (foreground)', payload);
           if (Notification.permission === 'granted') {
-            new Notification(payload?.notification?.title || 'New message', {
-              body: payload?.notification?.body || ''
+            new Notification(payload.notification?.title || 'New message', {
+              body: payload.notification?.body || ''
             });
           }
         });
@@ -294,12 +310,18 @@
     enablePushBtn.addEventListener('click', enablePushFlow);
     enablePushInlineBtn.addEventListener('click', enablePushFlow);
 
-    // If URL asks for notifications, try automatically (even with no username).
+    // If URL asks for notifications, try automatically; if blocked,
+    // the banner will appear to finish with one click.
     if (refnotification === 'set') {
       enablePushFlow();
     }
 
-    // Small debug
+    // helper
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
+    }
+
+    // visibility debugging
     document.addEventListener('visibilitychange', () => {
       console.debug('[page] visibility', document.visibilityState);
     });

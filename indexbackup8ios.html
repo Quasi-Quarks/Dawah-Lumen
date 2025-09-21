@@ -4,28 +4,32 @@
   <meta charset="utf-8" />
   <title>Dawah Luminance</title>
 
-  <!-- Viewport / iOS-safe layout -->
+  <!-- Viewport / safe text sizing -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <meta name="apple-mobile-web-app-title" content="Dawah Luminance">
+
+  <!-- iOS PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <!-- Theme color -->
-  <meta name="theme-color" content="#001d4b">
+  <!-- Theme colors -->
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#001d4b">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#001d4b">
 
-  <!-- Icons & Web Manifest (paths for GitHub Pages project site) -->
+  <!-- Icons -->
   <link rel="apple-touch-icon" sizes="192x192" href="/Dawah-Lumen/icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/Dawah-Lumen/icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="/Dawah-Lumen/icons/icon-512.png">
+
+  <!-- Manifest -->
   <link rel="manifest" href="/Dawah-Lumen/manifest.webmanifest">
 
-  <!-- Your styles -->
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css">
-
-  <!-- Tiny inline styles just for Menu panel (keep the rest in style.css) -->
   <style>
+    /* Minimal styles for the Menu & debug panel (rest lives in style.css) */
     .topbar { max-width:760px; width:100%; display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
     .menu-btn { appearance:none; border:1px solid rgba(255,255,255,.25); background:rgba(0,0,0,.2); color:#fff; padding:.45rem .7rem; border-radius:.5rem; }
     .menu-panel {
@@ -47,7 +51,7 @@
   </style>
 </head>
 <body id="body">
-  <h1>Dawah Luminance 💡 PWA simple update </h1>
+  <h1>Dawah Luminance 💡 IOS PWA debug menu 1</h1>
   <div class="hint">One room. Text only.</div>
 
   <div class="topbar">
@@ -57,6 +61,25 @@
     </div>
     <button id="menuBtn" class="menu-btn" type="button">☰ Menu</button>
   </div>
+
+  <!-- iOS install helper (only shows on iPhone/iPad when not standalone) -->
+  <div id="iosInstall" class="banner" style="display:none;">
+    <b>Install to Home Screen</b> to enable push on iPhone:
+    <ol style="margin:.5rem 0 0 1.1rem;">
+      <li>Tap Share (square with arrow)</li>
+      <li>Choose <b>Add to Home Screen</b></li>
+      <li>Open the app icon and tap <b>Enable notifications</b></li>
+    </ol>
+  </div>
+
+  <!-- “need a click” banner (Safari sometimes blocks auto-requests) -->
+  <div id="notifBanner" class="banner">
+    Click to finish enabling notifications for this device:
+    <button id="enablePushInline" type="button">Enable now</button>
+  </div>
+
+  <div id="permStatus" class="tiny"></div>
+  <div id="warn" class="warn"></div>
 
   <div id="messages">Loading…</div>
   <div id="buffer" style="margin-top:32px;opacity:0;">Loading</div>
@@ -68,7 +91,7 @@
     </form>
   </div>
 
-  <!-- Slide-up Menu -->
+  <!-- Slide-up Menu panel -->
   <div id="menuPanel" class="menu-panel" aria-hidden="true">
     <div class="menu-grid">
       <div class="menu-row" style="justify-content:space-between;">
@@ -76,16 +99,11 @@
         <button id="menuClose" class="close-btn" type="button">Close ✕</button>
       </div>
 
-      <!-- Simple note (replaces the old iOS banner) -->
-      <p style="opacity:.9;margin:.25rem 0 .5rem;">
-        Add to Home Screen and allow push notifications.
-      </p>
-
       <!-- Login -->
       <div><strong>Login</strong></div>
       <div class="menu-row">
-        <input id="loginUser" value="Guest" placeholder='Username e.g. "Guest"'>
-        <input id="loginCode" value="12345" placeholder='Code e.g. "12345"'>
+        <input id="loginUser" placeholder='Username e.g. "Draco"'>
+        <input id="loginCode" placeholder='Code e.g. "8382Z"'>
         <button id="loginBtn" class="menu-btn" type="button">Login</button>
       </div>
 
@@ -93,7 +111,7 @@
       <div><strong>Notifications</strong></div>
       <div class="menu-actions">
         <button id="enablePush" class="menu-btn" type="button">Enable notifications</button>
-        <span id="permStatus" class="tiny"></span>
+        <span id="permStatusInline" class="tiny"></span>
       </div>
 
       <!-- Debug -->
@@ -102,9 +120,6 @@
         <label for="debugToggle">Show debug box</label>
       </div>
       <div id="debugBox" aria-live="polite"></div>
-
-      <!-- Warnings -->
-      <div id="warn" class="warn"></div>
     </div>
   </div>
 
@@ -140,27 +155,30 @@
     const chatInput = document.getElementById('chat');
     const sendBtn = document.getElementById('sendBtn');
     const warnEl = document.getElementById('warn');
+
     const userBadge = document.getElementById('userBadge');
     const avatarEl = document.getElementById('avatar');
     const badgeName = document.getElementById('badgeName');
 
+    const iosInstall = document.getElementById('iosInstall');
+    const notifBanner = document.getElementById('notifBanner');
+    const permStatus = document.getElementById('permStatus');
+
+    // Menu bits
     const menuBtn = document.getElementById('menuBtn');
     const menuClose = document.getElementById('menuClose');
     const menuPanel = document.getElementById('menuPanel');
-
     const loginUser = document.getElementById('loginUser');
     const loginCode = document.getElementById('loginCode');
     const loginBtn  = document.getElementById('loginBtn');
-
     const enablePushBtn = document.getElementById('enablePush');
-    const permStatus = document.getElementById('permStatus');
-
+    const enablePushInlineBtn = document.getElementById('enablePushInline');
+    const permStatusInline = document.getElementById('permStatusInline');
     const debugToggle = document.getElementById('debugToggle');
     const debugBox = document.getElementById('debugBox');
 
-    // Profiles (includes Guest)
+    // Profiles: [username, image, code]
     const profiles_users = [
-      ["Guest", "picture.png", "12345"],
       ["Abu", "abu.PNG", "4829Q"],
       ["Chaos", "chaos.PNG", "1937A"],
       ["Cowbow", "cowboy.PNG", "5921X"],
@@ -181,9 +199,8 @@
     ];
     const avatarByName = new Map(profiles_users.map(([n, img]) => [n, img]));
 
-    // --- Logger (to debug box) ---
+    // --- Lightweight logger ---
     function log(line, tag='log'){
-      if (!debugBox) return;
       const stamp = new Date().toLocaleTimeString();
       const el = document.createElement('div');
       el.innerHTML = `<span class="debug-tag">[${stamp}] ${tag.toUpperCase()}:</span> ${line}`;
@@ -211,26 +228,18 @@
     }
 
     function applyUser(u){
-      if (!u){
-        currentUser = null;
-        setFormEnabled(false);
-        userBadge.hidden = true;
-        badgeName.textContent = '';
-        avatarEl.src = '';
-        sessionStorage.removeItem('dl_user');
-        return;
-      }
+      if (!u){ setFormEnabled(false); userBadge.hidden = true; badgeName.textContent = ''; avatarEl.src=''; return; }
       currentUser = u;
-      setFormEnabled(true);
-      userBadge.hidden = false;
       badgeName.textContent = u.name;
       avatarEl.src = `./images/${u.img}`;
       avatarEl.alt = u.name;
+      userBadge.hidden = false;
+      setFormEnabled(true);
       sessionStorage.setItem('dl_user', JSON.stringify(u));
       log(`Logged in as ${u.name}`, 'info');
     }
 
-    // Login
+    // Login handler
     loginBtn.addEventListener('click', () => {
       const name = (loginUser.value || '').trim();
       const code = (loginCode.value || '').trim();
@@ -241,11 +250,11 @@
         return;
       }
       const [n, img, c] = match;
-      warnEl.textContent = '';
       applyUser({ name:n, img, code:c });
+      warnEl.textContent = '';
     });
 
-    // Restore user from session (optional)
+    // Restore user from session
     const saved = sessionStorage.getItem('dl_user');
     if (saved){
       try{
@@ -255,7 +264,22 @@
       }catch{}
     }
 
-    // -------- Firestore (chat) --------
+    // Still support URL params for backwards compat / deep links
+    const params = new URLSearchParams(window.location.search);
+    const urlusername     = (params.get("refusrname") || "").trim();
+    const refpassword     = (params.get("refpassword") || "").trim();
+    const refnotification = (params.get("refnotification") || "").trim().toLowerCase();
+    if (urlusername && refpassword){
+      const match = profiles_users.find(([n,_img,c]) => n===urlusername && c===refpassword);
+      if (match){
+        const [n, img, c] = match;
+        applyUser({ name:n, img, code:c });
+      } else {
+        warnEl.textContent = 'Invalid link details.';
+      }
+    }
+
+    // -------- Firestore --------
     const messagesRef = collection(db, 'messages');
     const q = query(messagesRef, orderBy('createdAt','asc'), limit(50));
     onSnapshot(q, (snap) => {
@@ -293,12 +317,22 @@
     chatInput.addEventListener('focus', () => requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; }));
     chatInput.addEventListener('blur',  () => requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; }));
 
-    // -------- Web Push (user must click the button) --------
+    // -------- Web Push (iOS rules) --------
     const SW_PATH   = '/Dawah-Lumen/firebase-messaging-sw.js?v=3';
     const VAPID_KEY = 'BNUEVOAAfOuD3NrU9PgnZMWXL42hZqsrSCJqMZUNJtC2cx840YvnSdEFzJEL58-J6p02IHaj3eOe6y-bSCr48XY';
 
-    enablePushBtn.addEventListener('click', async () => {
-      try{
+    const isIOS = /iP(ad|hone|od)/.test(navigator.userAgent);
+    const isStandalone = matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (isIOS && !isStandalone) iosInstall.style.display = 'block';
+
+    async function enablePushFlow(){
+      try {
+        if (isIOS && !isStandalone) {
+          permStatus.textContent = 'On iPhone, install to Home Screen first (see above).';
+          iosInstall.style.display = 'block';
+          log('Push blocked: iOS not in standalone', 'warn');
+          return;
+        }
         const supported = await isSupported();
         if (!supported) { permStatus.textContent = 'Push not supported in this browser.'; log('Push not supported', 'warn'); return; }
         if (!('serviceWorker' in navigator)) { permStatus.textContent = 'Service workers not supported.'; log('No serviceWorker', 'warn'); return; }
@@ -309,16 +343,22 @@
         let permission = Notification.permission;
         if (permission !== 'granted') permission = await Notification.requestPermission();
         permStatus.textContent = `Permission: ${permission}`;
-        if (permission !== 'granted') { log('Permission not granted', 'warn'); return; }
+        permStatusInline.textContent = `Permission: ${permission}`;
+        if (permission !== 'granted') { notifBanner.classList.add('show'); log('Permission not granted', 'warn'); return; }
 
         const messaging = getMessaging(app);
         const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+
         if (token) {
           await addDoc(collection(db, 'tokens'), { token, createdAt: serverTimestamp() });
           permStatus.innerHTML = '<span class="ok">Notifications enabled.</span>';
+          permStatusInline.innerHTML = '<span class="ok">Notifications enabled.</span>';
+          notifBanner.classList.remove('show');
           log('Token saved to Firestore', 'info');
         } else {
           permStatus.textContent = 'Failed to get token.';
+          permStatusInline.textContent = 'Failed to get token.';
+          notifBanner.classList.add('show');
           log('Failed to get token', 'error');
         }
 
@@ -328,12 +368,28 @@
             new Notification(payload?.notification?.title || 'New message', { body: payload?.notification?.body || '' });
           }
         });
-      }catch(err){
-        console.error(err);
+      } catch (err) {
+        console.error('[push] enable error', err);
         permStatus.textContent = 'Error enabling notifications. See console.';
+        permStatusInline.textContent = 'Error enabling notifications.';
+        notifBanner.classList.add('show');
         log('Enable push error: ' + (err?.message || err), 'error');
       }
-    });
+    }
+
+    enablePushBtn.addEventListener('click', enablePushFlow);
+    enablePushInlineBtn.addEventListener('click', enablePushFlow);
+
+    // URL shortcut to request notifications
+    if (refnotification === 'set') {
+      if (isIOS && !isStandalone) {
+        iosInstall.style.display = 'block';
+        permStatus.textContent = 'Install to Home Screen to enable push.';
+        log('refnotification=set but iOS not standalone', 'warn');
+      } else {
+        enablePushFlow();
+      }
+    }
 
     // Small debug
     document.addEventListener('visibilitychange', () => {

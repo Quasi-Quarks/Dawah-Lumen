@@ -14,52 +14,31 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <!-- Theme colors -->
+  <!-- Theme colors (Safari & installed PWA) -->
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#001d4b">
   <meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#001d4b">
 
-  <!-- Icons -->
+  <!-- Icons (place files in /Dawah-Lumen/icons/) -->
   <link rel="apple-touch-icon" sizes="192x192" href="/Dawah-Lumen/icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/Dawah-Lumen/icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="/Dawah-Lumen/icons/icon-512.png">
 
-  <!-- Manifest -->
+  <!-- Manifest (must live at the project path on GitHub Pages) -->
   <link rel="manifest" href="/Dawah-Lumen/manifest.webmanifest">
 
   <!-- Styles -->
   <link rel="stylesheet" href="style.css">
-  <style>
-    /* Minimal styles for the Menu & debug panel (rest lives in style.css) */
-    .topbar { max-width:760px; width:100%; display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
-    .menu-btn { appearance:none; border:1px solid rgba(255,255,255,.25); background:rgba(0,0,0,.2); color:#fff; padding:.45rem .7rem; border-radius:.5rem; }
-    .menu-panel {
-      position: fixed; inset: auto 0 0 0; transform: translateY(105%);
-      background: rgba(0,0,0,.85); backdrop-filter: blur(6px);
-      border-top: 1px solid rgba(255,255,255,.1);
-      color:#fff; padding: 1rem; transition: transform .25s ease;
-    }
-    .menu-panel.show { transform: translateY(0); }
-    .menu-grid { display:flex; flex-direction:column; gap:.8rem; max-width:760px; margin: 0 auto; }
-    .menu-row { display:flex; gap:.5rem; align-items:center; }
-    .menu-row input { flex: 1 1 auto; min-width:0; padding:.55rem .6rem; border-radius:.5rem; border:none; outline:none; }
-    .menu-actions { display:flex; gap:.5rem; flex-wrap:wrap; }
-    .close-btn { margin-left:auto; appearance:none; border:1px solid rgba(255,255,255,.25); background:rgba(0,0,0,.2); color:#fff; padding:.45rem .7rem; border-radius:.5rem; }
-    #debugToggleRow { display:flex; align-items:center; gap:.5rem; }
-    #debugBox { display:none; max-height:30vh; overflow:auto; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:.5rem; padding:.6rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.9rem; }
-    #debugBox.show { display:block; }
-    .debug-tag { opacity:.7; margin-right:.4rem; }
-  </style>
 </head>
 <body id="body">
-  <h1>Dawah Luminance 💡 IOS PWA debug menu 1</h1>
-  <div class="hint">One room. Text only.</div>
+  <h1>Dawah Luminance 💡 PWA</h1>
+  <div class="hint">One room. Text only. Username is chosen from the link (URL).</div>
 
-  <div class="topbar">
+  <div class="row" style="gap:.5rem;align-items:center;justify-content:space-between;max-width:760px;width:100%;">
     <div class="userBadge" id="userBadge" hidden>
       <img id="avatar" class="avatar" alt="avatar" src="">
       <span id="badgeName"></span>
     </div>
-    <button id="menuBtn" class="menu-btn" type="button">☰ Menu</button>
+    <button id="enablePush" type="button">Enable notifications</button>
   </div>
 
   <!-- iOS install helper (only shows on iPhone/iPad when not standalone) -->
@@ -86,45 +65,12 @@
 
   <div class="formsend">
     <form id="form" class="row">
-      <input id="chat" type="text" placeholder="Messaging disabled" maxlength="500" disabled>
-      <button id="sendBtn" type="submit" disabled></button>
+      <input id="chat" type="text" placeholder="Type message…" maxlength="500">
+      <button id="sendBtn" type="submit"></button>
     </form>
   </div>
 
-  <!-- Slide-up Menu panel -->
-  <div id="menuPanel" class="menu-panel" aria-hidden="true">
-    <div class="menu-grid">
-      <div class="menu-row" style="justify-content:space-between;">
-        <strong>Menu</strong>
-        <button id="menuClose" class="close-btn" type="button">Close ✕</button>
-      </div>
-
-      <!-- Login -->
-      <div><strong>Login</strong></div>
-      <div class="menu-row">
-        <input id="loginUser" placeholder='Username e.g. "Draco"'>
-        <input id="loginCode" placeholder='Code e.g. "8382Z"'>
-        <button id="loginBtn" class="menu-btn" type="button">Login</button>
-      </div>
-
-      <!-- Notifications -->
-      <div><strong>Notifications</strong></div>
-      <div class="menu-actions">
-        <button id="enablePush" class="menu-btn" type="button">Enable notifications</button>
-        <span id="permStatusInline" class="tiny"></span>
-      </div>
-
-      <!-- Debug -->
-      <div id="debugToggleRow">
-        <input id="debugToggle" type="checkbox">
-        <label for="debugToggle">Show debug box</label>
-      </div>
-      <div id="debugBox" aria-live="polite"></div>
-    </div>
-  </div>
-
   <script type="module">
-    // Firebase (CDN, modular)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
     import {
       getFirestore, collection, addDoc, serverTimestamp,
@@ -134,7 +80,6 @@
       getMessaging, getToken, onMessage, isSupported
     } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-messaging.js";
 
-    // --- Config ---
     const firebaseConfig = {
       apiKey: "AIzaSyDOZU1AJi7ONWlKYgiIJXWoj7X8VAoZ9rM",
       authDomain: "dawah-lumen-v1.firebaseapp.com",
@@ -145,39 +90,25 @@
       measurementId: "G-660003ER5V"
     };
 
-    // Init
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
-    // Elements
+    // DOM
     const messagesEl = document.getElementById('messages');
     const form = document.getElementById('form');
     const chatInput = document.getElementById('chat');
     const sendBtn = document.getElementById('sendBtn');
     const warnEl = document.getElementById('warn');
-
+    const enablePushBtn = document.getElementById('enablePush');
+    const enablePushInlineBtn = document.getElementById('enablePushInline');
+    const permStatus = document.getElementById('permStatus');
+    const notifBanner = document.getElementById('notifBanner');
+    const iosInstall = document.getElementById('iosInstall');
     const userBadge = document.getElementById('userBadge');
     const avatarEl = document.getElementById('avatar');
     const badgeName = document.getElementById('badgeName');
 
-    const iosInstall = document.getElementById('iosInstall');
-    const notifBanner = document.getElementById('notifBanner');
-    const permStatus = document.getElementById('permStatus');
-
-    // Menu bits
-    const menuBtn = document.getElementById('menuBtn');
-    const menuClose = document.getElementById('menuClose');
-    const menuPanel = document.getElementById('menuPanel');
-    const loginUser = document.getElementById('loginUser');
-    const loginCode = document.getElementById('loginCode');
-    const loginBtn  = document.getElementById('loginBtn');
-    const enablePushBtn = document.getElementById('enablePush');
-    const enablePushInlineBtn = document.getElementById('enablePushInline');
-    const permStatusInline = document.getElementById('permStatusInline');
-    const debugToggle = document.getElementById('debugToggle');
-    const debugBox = document.getElementById('debugBox');
-
-    // Profiles: [username, image, code]
+    // -------- URL access control --------
     const profiles_users = [
       ["Abu", "abu.PNG", "4829Q"],
       ["Chaos", "chaos.PNG", "1937A"],
@@ -195,31 +126,19 @@
       ["The Lion", "thelion.PNG", "1984L"],
       ["Whiskey Blues", "whiskeybluews.PNG", "9203M"],
       ["safwan", "safwan.PNG", "9204M"],
-      ["Salaam Alaykum", "salaamalaykum.PNG", "9205M"],
+      ["Salaam Alaykum", "salaamalaykum.PNG", "9205M"]
     ];
     const avatarByName = new Map(profiles_users.map(([n, img]) => [n, img]));
 
-    // --- Lightweight logger ---
-    function log(line, tag='log'){
-      const stamp = new Date().toLocaleTimeString();
-      const el = document.createElement('div');
-      el.innerHTML = `<span class="debug-tag">[${stamp}] ${tag.toUpperCase()}:</span> ${line}`;
-      debugBox.appendChild(el);
-      debugBox.scrollTop = debugBox.scrollHeight;
-      console[tag === 'error' ? 'error' : 'log'](`[${tag}]`, line);
-    }
+    const params = new URLSearchParams(window.location.search);
+    const urlusername     = (params.get("refusrname") || "").trim();
+    const refpassword     = (params.get("refpassword") || "").trim();
+    const refnotification = (params.get("refnotification") || "").trim().toLowerCase();
 
-    // Menu show/hide
-    menuBtn.addEventListener('click', () => { menuPanel.classList.add('show'); menuPanel.setAttribute('aria-hidden','false'); });
-    menuClose.addEventListener('click', () => { menuPanel.classList.remove('show'); menuPanel.setAttribute('aria-hidden','true'); });
-
-    debugToggle.addEventListener('change', () => {
-      if (debugToggle.checked) debugBox.classList.add('show');
-      else debugBox.classList.remove('show');
-    });
-
-    // Auth state
     let currentUser = null;
+    for (const [name, img, code] of profiles_users) {
+      if (name === urlusername && code === refpassword) { currentUser = { name, img, code }; break; }
+    }
 
     function setFormEnabled(enabled){
       chatInput.disabled = !enabled;
@@ -227,56 +146,17 @@
       chatInput.placeholder = enabled ? "Type message…" : "Messaging disabled";
     }
 
-    function applyUser(u){
-      if (!u){ setFormEnabled(false); userBadge.hidden = true; badgeName.textContent = ''; avatarEl.src=''; return; }
-      currentUser = u;
-      badgeName.textContent = u.name;
-      avatarEl.src = `./images/${u.img}`;
-      avatarEl.alt = u.name;
+    if (!currentUser && urlusername) {
+      warnEl.textContent = 'Invalid link details. You cannot send messages.';
+      setFormEnabled(false);
+    } else if (currentUser) {
+      avatarEl.src = `./images/${currentUser.img}`;
+      avatarEl.alt = currentUser.name;
+      badgeName.textContent = currentUser.name;
       userBadge.hidden = false;
       setFormEnabled(true);
-      sessionStorage.setItem('dl_user', JSON.stringify(u));
-      log(`Logged in as ${u.name}`, 'info');
-    }
-
-    // Login handler
-    loginBtn.addEventListener('click', () => {
-      const name = (loginUser.value || '').trim();
-      const code = (loginCode.value || '').trim();
-      const match = profiles_users.find(([n,_img,c]) => n === name && c === code);
-      if (!match){
-        warnEl.textContent = 'Invalid username or code.';
-        log('Invalid login attempt', 'warn');
-        return;
-      }
-      const [n, img, c] = match;
-      applyUser({ name:n, img, code:c });
-      warnEl.textContent = '';
-    });
-
-    // Restore user from session
-    const saved = sessionStorage.getItem('dl_user');
-    if (saved){
-      try{
-        const u = JSON.parse(saved);
-        const stillValid = profiles_users.some(([n,_i,c]) => n===u.name && c===u.code);
-        if (stillValid) applyUser(u);
-      }catch{}
-    }
-
-    // Still support URL params for backwards compat / deep links
-    const params = new URLSearchParams(window.location.search);
-    const urlusername     = (params.get("refusrname") || "").trim();
-    const refpassword     = (params.get("refpassword") || "").trim();
-    const refnotification = (params.get("refnotification") || "").trim().toLowerCase();
-    if (urlusername && refpassword){
-      const match = profiles_users.find(([n,_img,c]) => n===urlusername && c===refpassword);
-      if (match){
-        const [n, img, c] = match;
-        applyUser({ name:n, img, code:c });
-      } else {
-        warnEl.textContent = 'Invalid link details.';
-      }
+    } else {
+      setFormEnabled(false); // viewer-only
     }
 
     // -------- Firestore --------
@@ -305,7 +185,7 @@
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!currentUser) { alert('❌ Please log in first from Menu.'); return; }
+      if (!currentUser) { alert('❌ Please enter the correct details in the link.'); return; }
       const chat = (chatInput.value || '').trim();
       if (!chat) return;
       await addDoc(messagesRef, { username: currentUser.name, chat, createdAt: serverTimestamp() });
@@ -330,21 +210,18 @@
         if (isIOS && !isStandalone) {
           permStatus.textContent = 'On iPhone, install to Home Screen first (see above).';
           iosInstall.style.display = 'block';
-          log('Push blocked: iOS not in standalone', 'warn');
           return;
         }
         const supported = await isSupported();
-        if (!supported) { permStatus.textContent = 'Push not supported in this browser.'; log('Push not supported', 'warn'); return; }
-        if (!('serviceWorker' in navigator)) { permStatus.textContent = 'Service workers not supported.'; log('No serviceWorker', 'warn'); return; }
+        if (!supported) { permStatus.textContent = 'Push not supported in this browser.'; return; }
+        if (!('serviceWorker' in navigator)) { permStatus.textContent = 'Service workers not supported.'; return; }
 
         const reg = await navigator.serviceWorker.register(SW_PATH);
-        log('Service worker registered', 'info');
 
         let permission = Notification.permission;
         if (permission !== 'granted') permission = await Notification.requestPermission();
         permStatus.textContent = `Permission: ${permission}`;
-        permStatusInline.textContent = `Permission: ${permission}`;
-        if (permission !== 'granted') { notifBanner.classList.add('show'); log('Permission not granted', 'warn'); return; }
+        if (permission !== 'granted') { notifBanner.classList.add('show'); return; }
 
         const messaging = getMessaging(app);
         const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
@@ -352,18 +229,13 @@
         if (token) {
           await addDoc(collection(db, 'tokens'), { token, createdAt: serverTimestamp() });
           permStatus.innerHTML = '<span class="ok">Notifications enabled.</span>';
-          permStatusInline.innerHTML = '<span class="ok">Notifications enabled.</span>';
           notifBanner.classList.remove('show');
-          log('Token saved to Firestore', 'info');
         } else {
           permStatus.textContent = 'Failed to get token.';
-          permStatusInline.textContent = 'Failed to get token.';
           notifBanner.classList.add('show');
-          log('Failed to get token', 'error');
         }
 
         onMessage(messaging, (payload) => {
-          log('Foreground message received', 'info');
           if (Notification.permission === 'granted') {
             new Notification(payload?.notification?.title || 'New message', { body: payload?.notification?.body || '' });
           }
@@ -371,9 +243,7 @@
       } catch (err) {
         console.error('[push] enable error', err);
         permStatus.textContent = 'Error enabling notifications. See console.';
-        permStatusInline.textContent = 'Error enabling notifications.';
         notifBanner.classList.add('show');
-        log('Enable push error: ' + (err?.message || err), 'error');
       }
     }
 
@@ -385,15 +255,13 @@
       if (isIOS && !isStandalone) {
         iosInstall.style.display = 'block';
         permStatus.textContent = 'Install to Home Screen to enable push.';
-        log('refnotification=set but iOS not standalone', 'warn');
       } else {
         enablePushFlow();
       }
     }
 
-    // Small debug
     document.addEventListener('visibilitychange', () => {
-      log('visibility: ' + document.visibilityState, 'info');
+      console.debug('[page] visibility', document.visibilityState);
     });
   </script>
 </body>

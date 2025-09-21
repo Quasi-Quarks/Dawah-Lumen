@@ -182,12 +182,12 @@ div#debugform {
 
 .margin {
     height: 40px;
-    margin-top: 52px;
+    margin-top: 43px;
     height: 100px;
     width: 100%;
-    height: 390px;
+    height: 308px;
     width: 535px;
-    padding: 42px;
+    padding: 12px;
 }
 
 
@@ -272,7 +272,7 @@ button {
 
 .formsend {
  position: fixed;
- bottom: 45px;
+ bottom: 5px;
  /* border: 2px solid rgb(255, 0, 0); */
  display: flex;
  justify-content: center;

@@ -1,76 +1,11 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Public Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 680px; margin: 2rem auto; padding: 0 1rem; }
-    #messages { display: flex; flex-direction: column; gap: .5rem; margin: 1rem 0; }
-    .msg { padding: .5rem .75rem; border: 1px solid #ddd; border-radius: .5rem; }
-    form { display: flex; gap: .5rem; margin-top: 1rem; }
-    input { padding: .5rem; } input[name="chat"]{flex:1;}
-  </style>
+  <meta charset="UTF-8">
+  <title>Hello World</title>
 </head>
 <body>
-  <h1>Public Chat (username + message)</h1>
-
-  <label>Username:
-    <input id="u" list="names" placeholder="Pick a name" />
-  </label>
-  <datalist id="names">
-    <option value="Admin" /><option value="Sara" /><option value="Ali" /><option value="Bassam" />
-  </datalist>
-
-  <div id="messages">Loading…</div>
-
-  <form id="f">
-    <input id="c" name="chat" type="text" placeholder="Type message…" maxlength="500" />
-    <button type="submit">Send</button>
-  </form>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp,
-             query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
-
-    const firebaseConfig = {/* paste yours here */};
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
-
-    const messages = collection(db, "messages");
-    const ALLOWED  = ["Admin","Sara","Ali","Bassam"];
-
-    const u = document.getElementById("u");
-    const c = document.getElementById("c");
-    const list = document.getElementById("messages");
-    const form = document.getElementById("f");
-
-    // live view
-    const q = query(messages, orderBy("createdAt","asc"), limit(50));
-    onSnapshot(q, snap => {
-      list.innerHTML = "";
-      snap.forEach(doc => {
-        const m = doc.data();
-        const div = document.createElement("div");
-        div.className = "msg";
-        div.innerHTML = `<b>${escapeHtml(m.username||"")}</b><br>${escapeHtml(m.chat||"")}`;
-        list.appendChild(div);
-      });
-      list.scrollTop = list.scrollHeight;
-    });
-
-    // send
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const username = (u.value||"").trim();
-      const chat = (c.value||"").trim();
-      if (!ALLOWED.includes(username) || !chat) return;
-      await addDoc(messages, { username, chat, createdAt: serverTimestamp() });
-      c.value = ""; c.focus();
-    });
-
-    function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]) )}
-  </script>
+  <h1>Hello, World! 👋</h1>
+  <p>If you can see this, GitHub Pages is working!</p>
 </body>
 </html>

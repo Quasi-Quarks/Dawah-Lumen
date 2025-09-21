@@ -345,7 +345,7 @@ button {
 .formsend {
  position: fixed;
  bottom: 2px;
- border: 2px solid rgb(255, 0, 0);
+ /* border: 2px solid rgb(255, 0, 0); */
  display: flex;
  justify-content: center;
  align-items: center;

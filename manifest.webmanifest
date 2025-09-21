@@ -1,0 +1,37 @@
+{
+  "id": "/Dawah-Lumen/",
+  "name": "Dawah Luminance",
+  "short_name": "Dawah",
+  "description": "One-room chat with instant web push notifications.",
+  "start_url": "/Dawah-Lumen/?source=pwa",
+  "scope": "/Dawah-Lumen/",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "background_color": "#001d4b",
+  "theme_color": "#001d4b",
+  "dir": "ltr",
+  "lang": "en",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/Dawah-Lumen/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Dawah-Lumen/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["social", "communication"],
+  "shortcuts": [
+    {
+      "name": "Open chat",
+      "url": "/Dawah-Lumen/?source=shortcut"
+    }
+  ],
+  "prefer_related_applications": false
+}

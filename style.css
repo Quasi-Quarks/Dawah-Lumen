@@ -15,7 +15,7 @@
     color: white;
     /* background-repeat: no-repeat; */
     /* text-align: center; */
-    font-size: 21px;
+    /* font-size: 21px; */
 }
 
 .chat_container {
@@ -174,13 +174,7 @@ h1 {
 }
 
 
-form#form {
-    /* position: fixed; */
-    /* bottom: 20px; */
-    display: flex;
-    width: 100%;
-    max-width: 640px;
-}
+
 
 div#debugform {
     display: none;
@@ -196,14 +190,7 @@ div#debugform {
     padding: 42px;
 }
 
-.formsend {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    position: fixed;
-    bottom: 45px;
-}
+
 
 
  .msg {
@@ -220,7 +207,102 @@ div#debugform {
     border-left-color: #fff700; */
     }
 
-@media only screen and (orientation: portrait) {
+
+
+input#chat {
+    color: black;
+}
+
+:root { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    
+    h1 {margin-bottom: 0.25rem;margin: 3rem;font-size: 2.7rem;width: 100%;text-align: center;}
+    .hint { color:#666; margin-bottom: 1rem; }
+
+    #messages {display: flex;flex-direction: column;gap: 0.4rem;/* margin: 2.5rem 0px; */max-width: 756px;/* margin-top: 22px; */}
+
+   
+    .msg .bubble { flex: 1; }
+    .msg .name {font-weight:600;margin-bottom:.15rem;font-size: large;}
+    .avatar {width: 36px;height: 36px;border-radius: 50%;object-fit: cover;border: 1px solid #ddd;}
+
+    .row {display: flex;/* gap: 0rem; *//* flex-wrap: wrap; *//* align-items: center; *//* display: none; */}
+    input[type="text"] {/* padding: .6rem .7rem; */}
+
+    
+    .warn { color: #b00020; margin-top: .25rem; }
+    .ok { color: #0a7a0a; }
+    .tiny {font-size: .85rem;color:#666;display: none;}
+    code {background:#f6f6f6;padding: .1rem .3rem;border-radius: .25rem;display: none;}
+    .userBadge { display:flex; align-items:center; gap:.5rem; margin:.5rem 0 1rem; color:#888; }
+    .banner { display:none; background:#f6fbff; border:1px solid #cde9ff; padding:.6rem .8rem; border-radius:.5rem; margin:.75rem 0; }
+    .banner.show { display:block; }
+
+
+
+
+    @media only screen and (orientation: landscape) {
+
+button {
+    cursor: pointer;
+    background: none;
+    border: none;
+    background-image: url(send.png);
+    background-size: 100% 100%;
+      height: 20px;
+    min-height: 30px;
+    max-height: 30px;
+
+
+        max-width: 30px;
+        min-width: 30px;
+        width: 30px;
+}
+
+
+    #chat {
+      height: 60px;
+      min-height: 20px;
+      max-height: 30px;
+      min-width: 86.4%;
+      width: 90%;
+      max-width: max-content;
+      margin-right: 2px;
+    }
+
+
+.formsend {
+ position: fixed;
+ bottom: 45px;
+ /* border: 2px solid rgb(255, 0, 0); */
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ height: 60px;
+ min-height: 20px;
+ max-height: 50px;
+ min-width: 750px;
+ width: 57%;
+ max-width: 70%;
+}
+
+
+form#form { /*form holding input */
+   display: flex;
+   justify-content: space-around;
+   align-items: center;
+   /* border: 2px solid green; */
+   min-width: 100%;
+   width: 100%;
+   max-width: 100%;
+   height: 100%;
+   min-height: 100%;
+   max-height: 100%;
+}
+
+
+}
+
+    @media only screen and (orientation: portrait) {
   .msg {
     display: flex;
     align-items: flex-start;
@@ -232,14 +314,65 @@ div#debugform {
     max-width: 83vw;
 }
 
-form#form {
-    /* position: fixed; */
-    /* bottom: 20px; */
-    display: flex;
-    max-width: 70%;
-}
+button {
+    cursor: pointer;
+    background: none;
+    border: none;
+    background-image: url(send.png);
+    background-size: 100% 100%;
+      height: 20px;
+    min-height: 30px;
+    max-height: 30px;
+
+
+        max-width: 30px;
+        min-width: 30px;
+        width: 30px;
 }
 
-input#chat {
-    color: black;
+
+    #chat {
+      height: 60px;
+      min-height: 20px;
+      max-height: 30px;
+
+ 
+      min-width: max-content;
+      width: 92%;
+      max-width: 50%;
+      margin-right: 2px;
+    }
+
+
+.formsend {
+ position: fixed;
+ bottom: 2px;
+ /* border: 2px solid rgb(255, 0, 0); */
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ height: 60px;
+ min-height: 20px;
+ max-height: 50px;
+ min-width: 50%;
+ width: 50%;
+ max-width: 70%;
+}
+
+
+form#form { /*form holding input */
+   display: flex;
+   justify-content: space-around;
+   align-items: center;
+   /* border: 2px solid green; */
+   min-width: 90%;
+   width: 100%;
+   max-width: 100%;
+   height: 100%;
+   min-height: 100%;
+   max-height: 100%;
+}
+
+
+
 }

@@ -1,0 +1,136 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Mini Firebase Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 680px; margin: 2rem auto; padding: 0 1rem; }
+    #messages { display: flex; flex-direction: column; gap: .5rem; margin: 1rem 0; }
+    .msg { padding: .5rem .75rem; border: 1px solid #ddd; border-radius: .5rem; }
+    form { display: flex; gap: .5rem; margin-top: 1rem; }
+    input { padding: .5rem; }
+    input[name="chat"] { flex: 1; }
+  </style>
+</head>
+<body>
+  <h1>Public Chat (username + message)</h1>
+
+  <label>Username:
+    <input id="u" list="names" placeholder="Pick a name" />
+  </label>
+  <datalist id="names">
+    <option value="Abu" />
+    <option value="Chaos" />
+    <option value="Cowboy" />
+    <option value="Dakid" />
+    <option value="Draco" />
+    <option value="Empress" />
+    <option value="Love" />
+    <option value="Abdul Jaleel" />
+    <option value="Hakeem" />
+    <option value="Lut" />
+    <option value="Mr Khan" />
+    <option value="Premeir" />
+    <option value="Sword of Allah" />
+    <option value="The Lion" />
+    <option value="Whiskey Blues" />
+    
+  </datalist>
+
+  <div id="messages">Loading…</div>
+
+  <form id="f">
+    <input id="c" name="chat" type="text" placeholder="Type message…" maxlength="500" />
+    <button type="submit">Send</button>
+  </form>
+
+  <script type="module">
+   
+   var  profiles_users = [
+    ["Abu", "https://drive.google.com/file/d/1rpGw0aQJFqDknahrLa6VOCY8hxc0POEF/view?usp=sharing"], 
+    ["Chaos", "https://drive.google.com/file/d/1_mBs0VLvUR3GzZJSa0d9UjJyAcBFywu8/view?usp=sharing"],
+    ["Cowbow", "https://drive.google.com/file/d/1D-1U3Die6rMLgMtem20COzZZMGuf7ekf/view?usp=sharing"],
+    ["Da Kid",  "https://drive.google.com/file/d/1FCxW4wjimj72AqgXzPFbkrRWgB5tHLBN/view?usp=sharing"],
+    ["Draco",  ""],
+    ["Empress",  ""],
+    ["Love",  ""],
+    ["Abdul Jaleel", ""], 
+    ["Hakeem", ""],
+    ["Lut", ""], 
+    ["Mr Khan", ""], 
+    ["Premier", ""],
+    ["Sword of Allah", ""], 
+    ["The Lion", ""],
+    ["Whiskey Blues", ""],
+];
+
+
+    // Import Firebase SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, serverTimestamp,
+      query, orderBy, limit, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    // 🔹 Your Firebase config (from console)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDOZU1AJi7ONWlKYgiIJXWoj7X8VAoZ9rM",
+      authDomain: "dawah-lumen-v1.firebaseapp.com",
+      projectId: "dawah-lumen-v1",
+      storageBucket: "dawah-lumen-v1.firebasestorage.app",
+      messagingSenderId: "796313906776",
+      appId: "1:796313906776:web:045884e106cf4ee5f2e42d",
+      measurementId: "G-660003ER5V"
+    };
+
+    // Initialize Firebase + Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Reference to "messages" collection
+    const messages = collection(db, "messages");
+
+    // Allowed usernames
+    const ALLOWED = ["Abu","Chaos","Cowbow","Da Kid", "Draco", "Empress", "Love", "Abdul Jaleel", "Hakeem", "Lut", "Mr Khan", "Premier", "Sword of Allah", "The Lion", "Whiskey Blues"];
+
+
+
+    // Elements
+    const u = document.getElementById("u");
+    const c = document.getElementById("c");
+    const list = document.getElementById("messages");
+    const form = document.getElementById("f");
+
+    // Real-time updates (latest 50 messages)
+    const q = query(messages, orderBy("createdAt","asc"), limit(50));
+    onSnapshot(q, snap => {
+      list.innerHTML = "";
+      snap.forEach(doc => {
+        const m = doc.data();
+        const div = document.createElement("div");
+        div.className = "msg";
+        div.innerHTML = `<b>${escapeHtml(m.username||"")}</b><br>${escapeHtml(m.chat||"")}`;
+        list.appendChild(div);
+      });
+      list.scrollTop = list.scrollHeight;
+    });
+
+    // Send new message
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = (u.value||"").trim();
+      const chat = (c.value||"").trim();
+      if (!ALLOWED.includes(username) || !chat) return;
+      await addDoc(messages, { username, chat, createdAt: serverTimestamp() });
+      c.value = "";
+      c.focus();
+    });
+
+    // Escape HTML helper
+    function escapeHtml(s){
+      return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+*:not(head, script, html) {
+    background-size: 122% 100%;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: system-ui;
+    font-weight: 100;
+    border: 2px solid #2a6599;
+    margin: 0;
+    padding: 0;
+    flex-direction: column;
+    background-repeat: no-repeat;
+    text-decoration: none;
+    color: white;
+    background-repeat: no-repeat;
+    text-align: center;
+    font-size: 21px;
+}
+
+.chat_container {
+    height: 50%;
+    width: 100%;
+}
+
+body {
+    height: 100vh;
+    background: #001d4b;
+}
+
+.chatuser_container {
+    width: 100%;
+    flex-direction: row;
+    height: max-content;
+    justify-content: space-evenly;
+}
+
+.chat_column1 {
+    height: 100%;
+    width: 15%;
+    max-width: 104px;
+}
+
+.profile_picture {
+    height: 35px;
+    width: 35px;
+    border-radius: 100%;
+    background-image: url(picture.png);
+    background-size: 120% 120%;
+    background-position: 40% -30%;
+}
+
+.chat_column2 {
+    width: 75%;
+    height: 100%;
+    align-items: flex-start;
+}
+
+.chat_text {
+    text-align: left;
+    width: 80%;
+    padding: 12px;
+}
+
+.chat_column {
+    align-items: flex-start;
+    margin: 9px 0px;
+}

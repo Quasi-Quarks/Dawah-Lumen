@@ -1,60 +1,30 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
   <meta charset="utf-8" />
   <title>Dawah Luminance</title>
-
-  <!-- Viewport / safe text sizing -->
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="format-detection" content="telephone=no">
-  <meta name="apple-mobile-web-app-title" content="Dawah Luminance">
-
-  <!-- iOS PWA -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <!-- options: default / black / black-translucent -->
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <!-- Theme colors (Safari & installed PWA) -->
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#001d4b">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#001d4b">
-
-  <!-- Icons (place files in /Dawah-Lumen/icons/ on GitHub Pages) -->
-  <link rel="apple-touch-icon" sizes="192x192" href="/Dawah-Lumen/icons/icon-192.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/Dawah-Lumen/icons/icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="/Dawah-Lumen/icons/icon-512.png">
-
-  <!-- Manifest (must live at the project path on GitHub Pages) -->
-  <link rel="manifest" href="/Dawah-Lumen/manifest.webmanifest">
-
-  <!-- Your styles -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="/Dawah-Lumen/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/Dawah-Lumen/icons/icon-192.png">
+
 </head>
 <body id="body">
-  <h1>Dawah Luminance 💡 PWA</h1>
+  <h1>Dawah Luminance 💡 cleaning bugs 4A</h1>
   <div class="hint">One room. Text only. Username is chosen from the link (URL).</div>
 
-  <!-- Visible controls (kept simple for PWA) -->
-  <div class="row" style="gap:.5rem;align-items:center;justify-content:space-between;max-width:760px;width:100%;">
+  <div id="debugform" class="row">
+    <label>Username:
+      <input id="username" placeholder="(from URL)" />
+    </label>
     <div class="userBadge" id="userBadge" hidden>
       <img id="avatar" class="avatar" alt="avatar" src="" />
       <span id="badgeName"></span>
     </div>
-
-    <!-- Always-visible notification button for iOS/Android -->
     <button id="enablePush" type="button">Enable notifications</button>
   </div>
 
-  <!-- iOS install helper (shows if not standalone on iPhone/iPad) -->
-  <div id="iosInstall" class="banner" style="display:none;">
-    <b>Install to Home Screen</b> to enable push on iPhone:
-    <ol style="margin:.5rem 0 0 1.1rem;">
-      <li>Tap <span aria-label="Share">Share</span> <span style="opacity:.7">(square with arrow)</span></li>
-      <li>Choose <b>Add to Home Screen</b></li>
-      <li>Open the app icon and tap <b>Enable notifications</b></li>
-    </ol>
-  </div>
-
-  <!-- “need a click” banner (used by Safari when auto-request is blocked) -->
+  <!-- Auto-enable banner (appears if refnotification=set still needs a click) -->
   <div id="notifBanner" class="banner">
     Click to finish enabling notifications for this device:
     <button id="enablePushInline" type="button">Enable now</button>
@@ -104,18 +74,26 @@
     const form = document.getElementById('form');
     const chatInput = document.getElementById('chat');
     const sendBtn = document.getElementById('sendBtn');
+    const unameInput = document.getElementById('username');
     const warnEl = document.getElementById('warn');
     const enablePushBtn = document.getElementById('enablePush');
     const enablePushInlineBtn = document.getElementById('enablePushInline');
     const permStatus = document.getElementById('permStatus');
     const notifBanner = document.getElementById('notifBanner');
-    const iosInstall = document.getElementById('iosInstall');
+
+    // Optional (may not exist — we guard writes)
+    const swPathOut = document.getElementById('swPathOut');
+    const permOut = document.getElementById('permOut');
+    const tokOut = document.getElementById('tokOut');
 
     const userBadge = document.getElementById('userBadge');
     const avatarEl = document.getElementById('avatar');
     const badgeName = document.getElementById('badgeName');
 
-    // ------------------ URL access control ------------------
+    // --------------------------------------------------
+    // URL-based access control (username + secret code)
+    // --------------------------------------------------
+    // Profiles: [username, imageFileIn/images, secretCode]
     const profiles_users = [
       ["Abu", "abu.PNG", "4829Q"],
       ["Chaos", "chaos.PNG", "1937A"],
@@ -138,8 +116,8 @@
     const avatarByName = new Map(profiles_users.map(([n, img]) => [n, img]));
 
     const params = new URLSearchParams(window.location.search);
-    const urlusername     = (params.get("refusrname") || "").trim();
-    const refpassword     = (params.get("refpassword") || "").trim();
+    const urlusername = (params.get("refusrname") || "").trim();
+    const refpassword = (params.get("refpassword") || "").trim();
     const refnotification = (params.get("refnotification") || "").trim().toLowerCase();
 
     let currentUser = null;
@@ -157,21 +135,36 @@
     }
 
     if (!currentUser && urlusername) {
+      // A username was provided but invalid
+      console.warn('[auth] URL did not match any profile', { urlusername, refpassword });
       warnEl.textContent = 'Invalid link details. You cannot send messages.';
+      if (unameInput) {
+        unameInput.value = '(invalid)';
+        unameInput.readOnly = true;
+      }
       setFormEnabled(false);
     } else if (currentUser) {
+      // Valid authenticated user
+      console.log('[auth] Authenticated as:', currentUser.name);
+      if (unameInput) {
+        unameInput.value = currentUser.name;
+        unameInput.readOnly = true;
+      }
       avatarEl.src = `./images/${currentUser.img}`;
       avatarEl.alt = currentUser.name;
       badgeName.textContent = currentUser.name;
       userBadge.hidden = false;
       setFormEnabled(true);
     } else {
-      // viewer-only
+      // No username params at all: just viewing (still allow notifications)
       setFormEnabled(false);
     }
 
-    // ---------------- Firestore ----------------
+    // -------------------
+    // Firestore data model
+    // -------------------
     const messagesRef = collection(db, 'messages');
+
     const q = query(messagesRef, orderBy('createdAt','asc'), limit(50));
     onSnapshot(q, (snap) => {
       messagesEl.innerHTML = '';
@@ -205,62 +198,77 @@
         row.appendChild(bubble);
         messagesEl.appendChild(row);
       });
-      requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; });
+      scrollMessagesToBottom();
     });
 
+    // Send message (only if authenticated by URL)
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!currentUser) { alert('❌ Please enter the correct details in the link.'); return; }
+      if (!currentUser) {
+        alert('❌ Please enter the correct details in the link.');
+        return;
+      }
       const chat = (chatInput.value || '').trim();
       if (!chat) return;
 
-      await addDoc(messagesRef, { username: currentUser.name, chat, createdAt: serverTimestamp() });
+      await addDoc(messagesRef, {
+        username: currentUser.name,
+        chat,
+        createdAt: serverTimestamp()
+      });
+
       chatInput.value = '';
       chatInput.focus();
-      requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; });
+      scrollMessagesToBottom();
     });
 
-    chatInput.addEventListener('focus', () => requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; }));
-    chatInput.addEventListener('blur',  () => requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; }));
-
-    // ---------------- Web Push (with iOS PWA rules) ----------------
-    const SW_PATH  = '/Dawah-Lumen/firebase-messaging-sw.js?v=3';
-    const VAPID_KEY = 'BNUEVOAAfOuD3NrU9PgnZMWXL42hZqsrSCJqMZUNJtC2cx840YvnSdEFzJEL58-J6p02IHaj3eOe6y-bSCr48XY';
-
-    const isIOS = /iP(ad|hone|od)/.test(navigator.userAgent);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
-    // iOS web push is ONLY available when installed to Home Screen (iOS 16.4+)
-    if (isIOS && !isStandalone) {
-      iosInstall.style.display = 'block';
+    // Auto-scroll helpers
+    function scrollMessagesToBottom() {
+      // allow DOM paint, then scroll
+      requestAnimationFrame(() => {
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      });
     }
+    chatInput.addEventListener('focus', scrollMessagesToBottom);
+    chatInput.addEventListener('blur',  scrollMessagesToBottom);
+
+    // -----------------------
+    // Push setup
+    // -----------------------
+    const SW_PATH = '/Dawah-Lumen/firebase-messaging-sw.js?v=3';
+    swPathOut && (swPathOut.textContent = SW_PATH); // guarded
+
+    const VAPID_KEY = 'BNUEVOAAfOuD3NrU9PgnZMWXL42hZqsrSCJqMZUNJtC2cx840YvnSdEFzJEL58-J6p02IHaj3eOe6y-bSCr48XY';
 
     async function enablePushFlow() {
       try {
-        // iOS not installed? Stop and explain.
-        if (isIOS && !isStandalone) {
-          permStatus.textContent = 'On iPhone, install to Home Screen first (see above).';
-          iosInstall.style.display = 'block';
+        const supported = await isSupported();
+        if (!supported) {
+          permStatus.textContent = 'Push not supported in this browser.';
+          return;
+        }
+        if (!('serviceWorker' in navigator)) {
+          permStatus.textContent = 'Service workers not supported.';
           return;
         }
 
-        const supported = await isSupported();
-        if (!supported) { permStatus.textContent = 'Push not supported in this browser.'; return; }
-        if (!('serviceWorker' in navigator)) { permStatus.textContent = 'Service workers not supported.'; return; }
-
         const reg = await navigator.serviceWorker.register(SW_PATH);
 
+        // Only ask if not already granted
         let permission = Notification.permission;
         if (permission !== 'granted') {
-          // iOS requires a user gesture; this function is bound to a button click.
           permission = await Notification.requestPermission();
         }
+        permOut && (permOut.textContent = permission);
         permStatus.textContent = `Permission: ${permission}`;
-        if (permission !== 'granted') { notifBanner.classList.add('show'); return; }
+        if (permission !== 'granted') {
+          notifBanner.classList.add('show');
+          return;
+        }
 
         const messaging = getMessaging(app);
         const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-
+        tokOut && (tokOut.textContent = token ? token.slice(0,12) : '');
         if (token) {
           await addDoc(collection(db, 'tokens'), { token, createdAt: serverTimestamp() });
           permStatus.innerHTML = '<span class="ok">Notifications enabled.</span>';
@@ -270,6 +278,7 @@
           notifBanner.classList.add('show');
         }
 
+        // Foreground notifications
         onMessage(messaging, (payload) => {
           if (Notification.permission === 'granted') {
             new Notification(payload?.notification?.title || 'New message', {
@@ -284,18 +293,13 @@
       }
     }
 
+    // Buttons run the same flow
     enablePushBtn.addEventListener('click', enablePushFlow);
     enablePushInlineBtn.addEventListener('click', enablePushFlow);
 
-    // URL shortcut to request notifications
+    // If URL asks for notifications, try automatically (even with no username).
     if (refnotification === 'set') {
-      // On iOS non-standalone we show the install helper instead.
-      if (isIOS && !isStandalone) {
-        iosInstall.style.display = 'block';
-        permStatus.textContent = 'Install to Home Screen to enable push.';
-      } else {
-        enablePushFlow();
-      }
+      enablePushFlow();
     }
 
     // Small debug

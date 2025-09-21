@@ -1,42 +1,69 @@
-/* ============================
-   Base / Variables
-============================ */
+/* =========================================================
+   Dawah Luminance — Mobile/PWA-first stylesheet (iOS tuned)
+   Keeps your neon look; adds iPhone PWA polish & safe areas
+========================================================= */
+
+/* ---------- Variables / Base ---------- */
 :root{
   --max-feed: 756px;
   --ring-width: 2.4px;
-  --gap: .4rem;
-  --card-pad: 1.3rem .8rem;
+  --gap: .48rem;
+  --card-pad-y: 1.15rem;
+  --card-pad-x: .9rem;
   --avatar: 36px;
-  --send-btn: 30px;
-  --input-h: 30px;
-  --headline-size: 2.7rem; /* desktop gets animation */
+  --send-btn: 36px;                 /* bigger touch target on iOS */
+  --input-h: 40px;                  /* taller input for thumbs */
+  --headline-size: clamp(1.8rem, 2.8vw + 1.4rem, 2.7rem);
+  --page-pad: max(12px, env(safe-area-inset-left));
+  --page-pad-r: max(12px, env(safe-area-inset-right));
+  --page-pad-b: max(8px, env(safe-area-inset-bottom));
+  --glass-bg: rgba(0,0,0,.16);
+  --glass-blur: 2px;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 *,
 *::before,
 *::after { box-sizing: border-box; }
 
-body{ color:#fff; }
+html, body {
+  height: 100%;
+  background: #000; /* fallback behind hero */
+}
 
-/* ============================
-   App Shell / Background
-============================ */
-#body{
+body{
+  color:#fff;
   margin:0;
   padding:0;
-  height:100vh;
-  width:100%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-start;
+  min-height: 100vh;
+  min-height: -webkit-fill-available; /* iOS PWA/Safari */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ---------- App Shell / Background ---------- */
+#body{
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+
+  /* animated glass over your mountain image */
   background:
-    linear-gradient(-45deg, rgba(0,31,61,.7), rgba(15,32,39,.7), rgba(44,83,100,.7), rgba(0,31,61,.7)),
-    url('background.jpg') no-repeat center/cover;
+    linear-gradient(-45deg, rgba(0,31,61,.72), rgba(15,32,39,.72), rgba(44,83,100,.72), rgba(0,31,61,.72)),
+    url('background.jpg') no-repeat center / cover;
   background-size: 400% 400%, cover;
   background-attachment: fixed;
   animation: animateBackground 15s ease infinite;
+
+  padding-left: var(--page-pad);
+  padding-right: var(--page-pad-r);
+  /* leave top to the title, bottom reserved for composer safe-area via .formsend */
 }
 
 @keyframes animateBackground{
@@ -45,64 +72,70 @@ body{ color:#fff; }
   100% { background-position: 0% 50%, center; }
 }
 
-/* ============================
-   Header
-============================ */
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  #body { animation: none; }
+}
+
+/* ---------- Header ---------- */
 h1{
-  margin:3rem 0 0.25rem;
+  margin: clamp(18px, 4vh, 48px) 0 clamp(4px, 1vh, 8px);
   text-align:center;
   width:100%;
   font-weight:700;
-  font-size:var(--headline-size);
+  font-size: var(--headline-size);
   letter-spacing:2px;
   font-family:'Orbitron', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  background:linear-gradient(90deg,#00e5ff,#ff4081,#76ff03,#ffab00);
+  background: linear-gradient(90deg,#00e5ff,#ff4081,#76ff03,#ffab00);
   background-size:400% 100%;
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   text-shadow:0 0 20px rgba(0,229,255,.3);
   animation: gradientText 6s ease infinite;
 }
+
 @keyframes gradientText{
   0%{background-position:0% 50%}
   50%{background-position:100% 50%}
   100%{background-position:0% 50%}
 }
 
-.hint{color:#666;margin-bottom:1rem;display:none;}
-#warn{display:none;}
-.tiny{font-size:.85rem;color:#666;display:none;}
-code{background:#f6f6f6;color:#111;padding:.1rem .3rem;border-radius:.25rem;display:none;}
-#debugform{display:none;}
+.hint, .tiny, code, #debugform, #warn { display:none; }
 
-/* ============================
-   Messages Feed
-============================ */
+/* ---------- Messages Feed ---------- */
 #messages{
   display:flex;
   flex-direction:column;
-  gap:var(--gap);
-  max-width:var(--max-feed);
-  width:90%;
-  margin:0 auto;
+  gap: var(--gap);
+  width: 100%;
+  max-width: var(--max-feed);
+  margin: 0 auto;
+  padding: 0 8px clamp(80px, 12vh, 120px); /* leave room for composer */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;       /* iOS momentum */
+  overscroll-behavior: contain;            /* reduce bounce against composer */
 }
 
 .msg{
   display:flex;
-  align-items:flex-start;
-  gap:.6rem;
-  padding:var(--card-pad);
-  border-radius:.6rem;
-  border:var(--ring-width) solid;   /* base for animated ring */
-  animation: rotateBorder 4s linear infinite;
-  /* start colors (will animate) */
+  align-items: flex-start;
+  gap: .6rem;
+  padding: var(--card-pad-y) var(--card-pad-x);
+  border-radius: .8rem;
+
+  /* Neon ring (animated) */
+  border: var(--ring-width) solid;
   border-top-color:#ff4081;
   border-right-color:#00e5ff;
   border-bottom-color:#5fff03;
   border-left-color:#ffab00;
-  background:rgba(0,0,0,.18);
-  backdrop-filter:saturate(120%) blur(2px);
+  animation: rotateBorder 4s linear infinite;
+
+  background: var(--glass-bg);
+  backdrop-filter: saturate(120%) blur(var(--glass-blur));
+  -webkit-backdrop-filter: saturate(120%) blur(var(--glass-blur)); /* iOS */
 }
+
 @keyframes rotateBorder{
   0%   {border-top-color:#ff4081;border-right-color:#00e5ff;border-bottom-color:#5fff03;border-left-color:#ffab00;}
   25%  {border-top-color:#00e5ff;border-right-color:#5fff03;border-bottom-color:#ffab00;border-left-color:#ff4081;}
@@ -112,88 +145,120 @@ code{background:#f6f6f6;color:#111;padding:.1rem .3rem;border-radius:.25rem;disp
 }
 
 .msg .avatar{
-  width:var(--avatar);
-  height:var(--avatar);
-  border-radius:50%;
-  object-fit:cover;
-  border:1px solid #ddd;
-  margin:0 3px;
+  width: var(--avatar);
+  height: var(--avatar);
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #ddd;
+  margin: 1px 2px 0 2px;
+  flex: 0 0 var(--avatar);
 }
 
-.msg .bubble{ flex:1; }
-.msg .name{ font-weight:600; margin-bottom:.15rem; font-size:large; }
+.msg .bubble{ flex: 1 1 auto; min-width: 0; }
+.msg .name{ font-weight: 650; margin-bottom: .15rem; font-size: clamp(0.98rem, 1.2vw + .75rem, 1.1rem); }
+.msg .bubble > div:last-child { line-height: 1.45; }
 
-/* ============================
-   Composer (fixed bottom bar)
-============================ */
+/* ---------- Composer (fixed bottom bar) ---------- */
 .formsend{
-  position:fixed;
-  bottom:6px;
-  left:50%;
-  transform:translateX(-50%);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  width:min(90vw, 900px);
-  height:60px;
-  max-height:60px;
-  padding:0 .5rem;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: min(92vw, 900px);
+  padding: 8px 10px calc(8px + var(--page-pad-b));
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.18) 40%);
+  /* keep taps crisp on iOS */
+  -webkit-backdrop-filter: saturate(120%) blur(2px);
+  backdrop-filter: saturate(120%) blur(2px);
 }
 
 form#form{
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  width:100%;
-  height:100%;
-  gap:.4rem;
+  justify-content: space-between;
+  gap: .5rem;
 }
 
 #chat{
-  flex:1 1 auto;
-  min-width:0;
-  height:var(--input-h);
-  max-height:var(--input-h);
-  padding:.6rem .7rem;
-  color:#111;
-  border-radius:.5rem;
-  border:none;
-  outline:none;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--input-h);
+  max-height: var(--input-h);
+  padding: .6rem .75rem;
+  color: #111;
+  background: #fff;
+  border: none;
+  border-radius: .65rem;
+  outline: none;
+  font-size: 1rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,.18);
 }
 
 button{
-  cursor:pointer;
-  background:none;
-  border:none;
-  width:var(--send-btn);
-  height:var(--send-btn);
-  min-width:var(--send-btn);
-  min-height:var(--send-btn);
-  max-width:var(--send-btn);
-  max-height:var(--send-btn);
-  background-image:url('send.png');
-  background-size:100% 100%;
-  background-repeat:no-repeat;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: var(--send-btn);
+  height: var(--send-btn);
+  min-width: var(--send-btn);
+  min-height: var(--send-btn);
+  background-image: url('send.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,.35));
 }
 
-/* ============================
-   Banners & Badges
-============================ */
-.userBadge{ display:flex; align-items:center; gap:.5rem; margin:.5rem 0 1rem; color:#888; }
-.banner{ display:none; background:#f6fbff; border:1px solid #cde9ff; padding:.6rem .8rem; border-radius:.5rem; margin:.75rem 0; }
+/* Bigger hit-area on iOS for the send button */
+button::after{
+  content:'';
+  position:absolute;
+  inset:-6px;
+}
+
+/* ---------- Banners & Badges ---------- */
+.userBadge{
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  margin:.5rem 0 1rem;
+  color:#cfcfcf;
+}
+.userBadge .avatar{ width: 28px; height: 28px; border: 0; }
+
+.banner{
+  display:none;
+  background:#0b1c28aa;
+  border:1px solid #2a9df4;
+  padding:.7rem .9rem;
+  border-radius:.6rem;
+  margin:.9rem 0;
+  max-width: var(--max-feed);
+  width: 100%;
+  backdrop-filter: blur(4px);
+}
 .banner.show{ display:block; }
 
-/* ============================
-   Portrait / Landscape tweaks
-============================ */
+/* ---------- Layout tweaks ---------- */
 @media (orientation:landscape){
-  #chat{ width:100%; }
+  #messages { padding-bottom: clamp(72px, 10vh, 110px); }
 }
 
 @media (orientation:portrait){
-  .msg{ max-width:83vw; }
-  .formsend{
-    width:85vw;
-    bottom:2px;
-  }
+  .msg{ max-width: 94vw; margin-inline: auto; }
+}
+
+/* ---------- Dark/Light preference (keeps your look, softens text) ---------- */
+@media (prefers-color-scheme: light){
+  #chat{ color:#111; background:#fff; }
+}
+
+/* ---------- Reduced motion for accessibility ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .msg { animation: none; }
+  h1 { animation: none; }
+}
+
+/* ---------- Legacy iOS safe-area fallback ---------- */
+@supports (padding: max(0px)) {
+  .formsend { padding-bottom: max(8px, constant(safe-area-inset-bottom)); }
 }

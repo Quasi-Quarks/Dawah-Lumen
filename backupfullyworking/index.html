@@ -2,50 +2,37 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Dawah Luminance</title>
+  <title>Dawah Lumen – Public Chat v10</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css">
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-    body {max-width: 720px;margin: 2rem auto;padding: 0 1rem;}
+    body { max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
     h1 { margin-bottom: .25rem; }
     .hint { color:#666; margin-bottom: 1rem; }
 
     #messages { display: flex; flex-direction: column; gap: .5rem; margin: 1rem 0; }
 
-    .msg {
-    display:flex;
-    align-items: flex-start;
-    gap: 0.6rem;
-    padding: 1.3rem .8rem;
-    border: 18px solid #ddd;
-    border-radius:.6rem;
-    border: 2.4px solid;
-    /* border-top-color: rgb(251 77 117);
-    border-right-color: #1cdd1c;
-    border-bottom-color: #2ca0e3;
-    border-left-color: #fff700; */
-    }
+    .msg { display:flex; align-items: flex-start; gap:.6rem; padding:.6rem .8rem; border:1px solid #ddd; border-radius:.6rem; }
     .msg .bubble { flex: 1; }
-    .msg .name {font-weight:600;margin-bottom:.15rem;font-size: large;}
-    .avatar {width: 43px;height: 36px;border-radius: 50%;object-fit: cover;border: 1px solid #ddd;}
+    .msg .name { font-weight:600; margin-bottom:.15rem; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
 
-    .row {display: flex;gap: .5rem;flex-wrap: wrap;align-items: center;display: none;}
+    .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
     input[type="text"] { padding: .6rem .7rem; }
     #chat { flex: 1; min-width: 220px; }
     button { padding: .6rem .9rem; cursor: pointer; }
 
     .warn { color: #b00020; margin-top: .25rem; }
     .ok { color: #0a7a0a; }
-    .tiny {font-size: .85rem;color:#666;display: none;}
-    code {background:#f6f6f6;padding: .1rem .3rem;border-radius: .25rem;display: none;}
+    .tiny { font-size: .85rem; color:#666; }
+    code { background:#f6f6f6; padding: .1rem .3rem; border-radius: .25rem; }
     .userBadge { display:flex; align-items:center; gap:.5rem; margin:.5rem 0 1rem; color:#888; }
     .banner { display:none; background:#f6fbff; border:1px solid #cde9ff; padding:.6rem .8rem; border-radius:.5rem; margin:.75rem 0; }
     .banner.show { display:block; }
   </style>
 </head>
-<body id="body">
-  <h1>Dawah Luminance</h1>
+<body>
+  <h1>Dawah Lumen – Public Chat v12</h1>
   <div class="hint">One room. Text only. Username is chosen from the link (URL).</div>
 
   <div class="row">

@@ -1,20 +1,20 @@
 *:not(head, script, html) {
-    background-size: 122% 100%;
-    background-position: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: system-ui;
-    font-weight: 100;
-    border: 2px solid #2a6599;
-    margin: 0;
-    padding: 0;
-    flex-direction: column;
-    background-repeat: no-repeat;
-    text-decoration: none;
+    /* background-size: 122% 100%; */
+    /* background-position: center; */
+    /* display: flex; */
+    /* justify-content: center; */
+    /* align-items: center; */
+    /* font-family: system-ui; */
+    /* font-weight: 100; */
+    /* border: 2px solid #2a6599; */
+    /* margin: 0; */
+    /* padding: 0; */
+    /* flex-direction: column; */
+    /* background-repeat: no-repeat; */
+    /* text-decoration: none; */
     color: white;
-    background-repeat: no-repeat;
-    text-align: center;
+    /* background-repeat: no-repeat; */
+    /* text-align: center; */
     font-size: 21px;
 }
 
@@ -65,4 +65,104 @@ body {
 .chat_column {
     align-items: flex-start;
     margin: 9px 0px;
+}
+
+.hint {
+    display: none;
+}
+
+div#warn {
+    display: none;
+}
+
+.msg {
+     /* Makes it a circle */
+  border: 10px solid;       /* Border width */
+  border-top-color: rgb(32, 216, 176);     /* Initial top border color */
+  border-right-color: green; /* Initial right border color */
+  border-bottom-color: blue; /* Initial bottom border color */
+  border-left-color: purple; /* Initial left border color */
+  
+  animation: rotateBorder 4s linear infinite;  
+}
+
+@keyframes rotateBorder {
+  0% {
+    border-top-color: #ff4081;   
+    border-right-color: #00e5ff; 
+    border-bottom-color: #5fff03; 
+    border-left-color: #ffab00;  
+  }
+  25% {
+    border-top-color: #00e5ff;   
+    border-right-color: #5fff03; 
+    border-bottom-color: #ffab00; 
+    border-left-color: #ff4081;  
+  }
+  50% {
+    border-top-color: #5fff03;   
+    border-right-color: #ffab00; 
+    border-bottom-color: #ff4081; 
+    border-left-color: #00e5ff;  
+  }
+  75% {
+    border-top-color: #ffab00;   
+    border-right-color: #ff4081; 
+    border-bottom-color: #00e5ff; 
+    border-left-color: #5fff03;  
+  }
+  100% {
+    border-top-color: #ff4081;   
+    border-right-color: #00e5ff; 
+    border-bottom-color: #5fff03; 
+    border-left-color: #ffab00;  
+  }
+}
+
+
+h1 {
+  font-family: 'Orbitron', sans-serif; /* Futuristic, geometric font */
+  font-size: 64px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #00e5ff, #ff4081, #76ff03, #ffab00);
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientText 6s ease infinite;
+  letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+}
+
+@keyframes gradientText {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+
+#body {
+  /* margin: 0; */
+  /* padding: 0; */
+  height: 100vh;
+  /* display: flex; */
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background: 
+    linear-gradient(-45deg, rgba(0, 31, 61, 0.7), rgba(15, 32, 39, 0.7), rgba(44, 83, 100, 0.7), rgba(0, 31, 61, 0.7)),
+    url('background.jpg') no-repeat center center / cover;
+  background-size: 400% 400%, cover;
+  animation: animateBackground 15s ease infinite;
+}
+
+@keyframes animateBackground {
+  0% {
+    background-position: 0% 50%, center;
+  }
+  50% {
+    background-position: 100% 50%, center;
+  }
+  100% {
+    background-position: 0% 50%, center;
+  }
 }

@@ -85,6 +85,14 @@
     const messagesEl = document.getElementById('messages');
     const form = document.getElementById('form');
     const chatInput = document.getElementById('chat');
+
+        // Scroll to bottom when focusing or leaving the input
+chatInput.addEventListener('focus', () => {
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+});
+chatInput.addEventListener('blur', () => {
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+});
     const unameInput = document.getElementById('username');
     const warnEl = document.getElementById('warn');
     const enablePushBtn = document.getElementById('enablePush');
@@ -300,6 +308,11 @@
     document.addEventListener('visibilitychange', () => {
       console.debug('[page] visibility', document.visibilityState);
     });
+
+
+
+
+
   </script>
 </body>
 </html>

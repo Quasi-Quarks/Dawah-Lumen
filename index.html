@@ -190,6 +190,7 @@
         messagesEl.appendChild(row);
       });
       messagesEl.scrollTop = messagesEl.scrollHeight;
+       messagesEl.scrollTop = messagesEl.scrollHeight;
     });
 
     // Send message (only if authenticated by URL)
@@ -210,6 +211,8 @@
       });
       chatInput.value = '';
       chatInput.focus();
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+
     });
 
     // -----------------------

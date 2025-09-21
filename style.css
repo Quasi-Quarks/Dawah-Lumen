@@ -1,6 +1,6 @@
 /* =========================================================
    Dawah Luminance — Mobile/PWA-first stylesheet (iOS tuned)
-   Keeps your neon look; adds iPhone PWA polish & safe areas
+   NO ANIMATIONS — optimized for iPhone performance
 ========================================================= */
 
 /* ---------- Variables / Base ---------- */
@@ -11,14 +11,13 @@
   --card-pad-y: 1.15rem;
   --card-pad-x: .9rem;
   --avatar: 36px;
-  --send-btn: 36px;                 /* bigger touch target on iOS */
-  --input-h: 40px;                  /* taller input for thumbs */
+  --send-btn: 36px;                /* bigger touch target on iOS */
+  --input-h: 40px;                 /* taller input for thumbs */
   --headline-size: clamp(1.8rem, 2.8vw + 1.4rem, 2.7rem);
   --page-pad: max(12px, env(safe-area-inset-left));
   --page-pad-r: max(12px, env(safe-area-inset-right));
   --page-pad-b: max(8px, env(safe-area-inset-bottom));
-  --glass-bg: rgba(0,0,0,.16);
-  --glass-blur: 2px;
+  --glass-bg: rgba(0,0,0,.14);     /* slightly lighter for contrast */
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -28,10 +27,7 @@
 *::before,
 *::after { box-sizing: border-box; }
 
-html, body {
-  height: 100%;
-  background: #000; /* fallback behind hero */
-}
+html, body { height: 100%; background: #000; }
 
 body{
   color:#fff;
@@ -43,7 +39,7 @@ body{
   touch-action: manipulation;
 }
 
-/* ---------- App Shell / Background ---------- */
+/* ---------- App Shell / Background (static) ---------- */
 #body{
   min-height: 100vh;
   min-height: -webkit-fill-available;
@@ -53,31 +49,16 @@ body{
   align-items: center;
   justify-content: flex-start;
 
-  /* animated glass over your mountain image */
+  /* Static overlay + hero image (no animated gradient, no fixed attach) */
   background:
     linear-gradient(-45deg, rgba(0,31,61,.72), rgba(15,32,39,.72), rgba(44,83,100,.72), rgba(0,31,61,.72)),
     url('background.jpg') no-repeat center / cover;
-  background-size: 400% 400%, cover;
-  background-attachment: fixed;
-  animation: animateBackground 15s ease infinite;
 
   padding-left: var(--page-pad);
   padding-right: var(--page-pad-r);
-  /* leave top to the title, bottom reserved for composer safe-area via .formsend */
 }
 
-@keyframes animateBackground{
-  0%   { background-position: 0% 50%, center; }
-  50%  { background-position:100% 50%, center; }
-  100% { background-position: 0% 50%, center; }
-}
-
-/* Respect users who prefer reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  #body { animation: none; }
-}
-
-/* ---------- Header ---------- */
+/* ---------- Header (static neon text) ---------- */
 h1{
   margin: clamp(18px, 4vh, 48px) 0 clamp(4px, 1vh, 8px);
   text-align:center;
@@ -86,18 +67,12 @@ h1{
   font-size: var(--headline-size);
   letter-spacing:2px;
   font-family:'Orbitron', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+  /* Static gradient fill (no animation) */
   background: linear-gradient(90deg,#00e5ff,#ff4081,#76ff03,#ffab00);
-  background-size:400% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow:0 0 20px rgba(0,229,255,.3);
-  animation: gradientText 6s ease infinite;
-}
-
-@keyframes gradientText{
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
+  text-shadow:0 0 12px rgba(0,229,255,.25);
 }
 
 .hint, .tiny, code, #debugform, #warn { display:none; }
@@ -110,10 +85,10 @@ h1{
   width: 100%;
   max-width: var(--max-feed);
   margin: 0 auto;
-  padding: 0 8px clamp(80px, 12vh, 120px); /* leave room for composer */
+  padding: 0 8px clamp(80px, 12vh, 120px); /* space for composer */
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;       /* iOS momentum */
-  overscroll-behavior: contain;            /* reduce bounce against composer */
+  overscroll-behavior: contain;
 }
 
 .msg{
@@ -123,25 +98,19 @@ h1{
   padding: var(--card-pad-y) var(--card-pad-x);
   border-radius: .8rem;
 
-  /* Neon ring (animated) */
+  /* Static neon ring (no rotation) */
   border: var(--ring-width) solid;
   border-top-color:#ff4081;
   border-right-color:#00e5ff;
   border-bottom-color:#5fff03;
   border-left-color:#ffab00;
-  animation: rotateBorder 4s linear infinite;
 
+  /* Light “glass” look without heavy blur */
   background: var(--glass-bg);
-  backdrop-filter: saturate(120%) blur(var(--glass-blur));
-  -webkit-backdrop-filter: saturate(120%) blur(var(--glass-blur)); /* iOS */
-}
-
-@keyframes rotateBorder{
-  0%   {border-top-color:#ff4081;border-right-color:#00e5ff;border-bottom-color:#5fff03;border-left-color:#ffab00;}
-  25%  {border-top-color:#00e5ff;border-right-color:#5fff03;border-bottom-color:#ffab00;border-left-color:#ff4081;}
-  50%  {border-top-color:#5fff03;border-right-color:#ffab00;border-bottom-color:#ff4081;border-left-color:#00e5ff;}
-  75%  {border-top-color:#ffab00;border-right-color:#ff4081;border-bottom-color:#00e5ff;border-left-color:#5fff03;}
-  100% {border-top-color:#ff4081;border-right-color:#00e5ff;border-bottom-color:#5fff03;border-left-color:#ffab00;}
+  /* If you want a tiny blur, uncomment next two lines (slight cost on iOS):
+     backdrop-filter: saturate(120%) blur(2px);
+     -webkit-backdrop-filter: saturate(120%) blur(2px);
+  */
 }
 
 .msg .avatar{
@@ -162,14 +131,11 @@ h1{
 .formsend{
   position: fixed;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateZ(0); /* promote to own layer */
   bottom: 0;
   width: min(92vw, 900px);
   padding: 8px 10px calc(8px + var(--page-pad-b));
   background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.18) 40%);
-  /* keep taps crisp on iOS */
-  -webkit-backdrop-filter: saturate(120%) blur(2px);
-  backdrop-filter: saturate(120%) blur(2px);
 }
 
 form#form{
@@ -195,6 +161,7 @@ form#form{
 }
 
 button{
+  position: relative;               /* for hit-area */
   cursor: pointer;
   background: none;
   border: none;
@@ -234,7 +201,6 @@ button::after{
   margin:.9rem 0;
   max-width: var(--max-feed);
   width: 100%;
-  backdrop-filter: blur(4px);
 }
 .banner.show{ display:block; }
 
@@ -247,15 +213,14 @@ button::after{
   .msg{ max-width: 94vw; margin-inline: auto; }
 }
 
-/* ---------- Dark/Light preference (keeps your look, softens text) ---------- */
+/* ---------- Light mode tweaks ---------- */
 @media (prefers-color-scheme: light){
   #chat{ color:#111; background:#fff; }
 }
 
-/* ---------- Reduced motion for accessibility ---------- */
+/* ---------- Reduced motion (still no animations, just future-proof) ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .msg { animation: none; }
-  h1 { animation: none; }
+  /* nothing to disable—animations removed by design */
 }
 
 /* ---------- Legacy iOS safe-area fallback ---------- */

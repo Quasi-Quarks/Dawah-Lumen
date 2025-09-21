@@ -1,8 +1,8 @@
 // /Dawah-Lumen/firebase-messaging-sw.js
 /* iOS/Safari-friendly FCM service worker
-   - Works for Safari 16.4+ (including installed PWA)
-   - Avoids duplicate notifications (let FCM display when a notification payload is present)
-   - Focuses existing tab/app window or opens your app on click
+   - Safari 16.4+ (also works when installed to Home Screen)
+   - Avoids duplicate notifications (let FCM render when notification payload exists)
+   - Focuses an existing tab/app window or opens the app on click
 */
 
 importScripts('https://www.gstatic.com/firebasejs/12.3.0/firebase-app-compat.js');
@@ -19,35 +19,66 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// --- constants used for fallback data-only messages ---
+// --- constants for data-only fallback ---
 const APP_URL = 'https://quasi-quarks.github.io/Dawah-Lumen/';
-const ICON   = '/Dawah-Lumen/icons/icon-192.png';   // better than favicon for iOS
-const BADGE  = '/Dawah-Lumen/icons/icon-192.png';   // Safari ignores "badge", but harmless
+const ICON    = '/Dawah-Lumen/icons/icon-192.png'; // better than favicon on iOS
+const BADGE   = '/Dawah-Lumen/icons/icon-192.png'; // Safari ignores but harmless
 
-// Ensure the new SW takes control immediately (helps iOS PWA updates)
+// Take over immediately (helps iOS PWAs update without manual refresh)
 self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+self.addEventListener('activate', (evt) => evt.waitUntil(self.clients.claim()));
 
-// If FCM sends a *notification* payload, the browser shows it automatically.
-// We only show our own when it's *data-only* to prevent duplicates.
+// If FCM includes a notification payload, browser shows it by itself.
+// We only render our own for data-only payloads to avoid duplicates.
 messaging.onBackgroundMessage((payload) => {
-  // If a notification payload exists, do nothing (avoid duplicate)
-  if (payload && payload.notification) {
-    // console.log('[sw] Notification payload present: letting FCM display it.');
-    return;
+  try {
+    if (payload && payload.notification) {
+      // Let FCM/browser handle it to prevent double notifications.
+      return;
+    }
+
+    const title = (payload?.data?.title) || 'New message';
+    const body  = (payload?.data?.body)  || '';
+    const url   = (payload?.data?.url)   || APP_URL;
+
+    self.registration.showNotification(title, {
+      body,
+      icon: ICON,
+      badge: BADGE,
+      data: { url },
+    });
+  } catch (err) {
+    // Swallow errors quietly; notification rendering should never crash the SW.
+    // console.error('[sw] onBackgroundMessage error', err);
   }
+});
 
-  // Handle data-only payloads
-  const title = (payload?.data?.title) || 'New message';
-  const body  = (payload?.data?.body)  || '';
-  const url   = (payload?.data?.url)   || APP_URL;
+// Extra safety: some environments may fire a raw 'push' with JSON data.
+// If the browser already showed a notification (via FCM), this won't run;
+// if it's data-only, we render similarly to the handler above.
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  try {
+    const data = event.data.json?.() ?? {};
+    if (data?.notification) {
+      // Browser will have shown it already.
+      return;
+    }
+    const title = (data?.data?.title) || data.title || 'New message';
+    const body  = (data?.data?.body)  || data.body  || '';
+    const url   = (data?.data?.url)   || data.url   || APP_URL;
 
-  self.registration.showNotification(title, {
-    body,
-    icon: ICON,
-    badge: BADGE,
-    data: { url },
-  });
+    event.waitUntil(
+      self.registration.showNotification(title, {
+        body,
+        icon: ICON,
+        badge: BADGE,
+        data: { url },
+      })
+    );
+  } catch {
+    // Ignore malformed payloads
+  }
 });
 
 // Focus an existing window or open a new one on click
@@ -58,6 +89,7 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil((async () => {
     const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     for (const c of allClients) {
+      // Match by path segment so it works from the GitHub Pages project path
       if (c.url.includes('/Dawah-Lumen/') && 'focus' in c) {
         return c.focus();
       }
@@ -66,7 +98,7 @@ self.addEventListener('notificationclick', (event) => {
   })());
 });
 
-// Optional: track dismissals (handy for debugging, doesn’t affect UX)
+// Optional: debug hook
 self.addEventListener('notificationclose', () => {
   // console.log('[sw] notification closed');
 });

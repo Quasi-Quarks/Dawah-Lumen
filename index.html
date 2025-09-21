@@ -11,43 +11,40 @@
   <meta name="apple-mobile-web-app-title" content="Dawah Luminance">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <!-- Theme color -->
   <meta name="theme-color" content="#001d4b">
 
-  <!-- Icons & Web Manifest (paths for GitHub Pages project site) -->
+  <!-- Icons & Web Manifest (GitHub Pages project path) -->
   <link rel="apple-touch-icon" sizes="192x192" href="/Dawah-Lumen/icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/Dawah-Lumen/icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="/Dawah-Lumen/icons/icon-512.png">
   <link rel="manifest" href="/Dawah-Lumen/manifest.webmanifest">
 
-  <!-- Your styles -->
+  <!-- Your chat styles -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- Tiny inline styles just for Menu panel (keep the rest in style.css) -->
+  <!-- Minimal, safe menu styles (no heavy filters) -->
   <style>
-    .topbar { max-width:760px; width:100%; display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
-    .menu-btn { appearance:none; border:1px solid rgba(255,255,255,.25); background:rgba(0,0,0,.2); color:#fff; padding:.45rem .7rem; border-radius:.5rem; }
-    .menu-panel {
-      position: fixed; inset: auto 0 0 0; transform: translateY(105%);
-      background: rgba(0,0,0,.85); backdrop-filter: blur(6px);
-      border-top: 1px solid rgba(255,255,255,.1);
-      color:#fff; padding: 1rem; transition: transform .25s ease;
-    }
-    .menu-panel.show { transform: translateY(0); }
-    .menu-grid { display:flex; flex-direction:column; gap:.8rem; max-width:760px; margin: 0 auto; }
-    .menu-row { display:flex; gap:.5rem; align-items:center; }
-    .menu-row input { flex: 1 1 auto; min-width:0; padding:.55rem .6rem; border-radius:.5rem; border:none; outline:none; }
-    .menu-actions { display:flex; gap:.5rem; flex-wrap:wrap; }
-    .close-btn { margin-left:auto; appearance:none; border:1px solid rgba(255,255,255,.25); background:rgba(0,0,0,.2); color:#fff; padding:.45rem .7rem; border-radius:.5rem; }
-    #debugToggleRow { display:flex; align-items:center; gap:.5rem; }
-    #debugBox { display:none; max-height:30vh; overflow:auto; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:.5rem; padding:.6rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.9rem; }
-    #debugBox.show { display:block; }
-    .debug-tag { opacity:.7; margin-right:.4rem; }
+    .topbar{max-width:760px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+    .menu-btn{appearance:none;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.2);color:#fff;padding:.45rem .7rem;border-radius:.5rem}
+
+    /* Full-screen overlay without blur */
+    .menu{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);opacity:0;pointer-events:none}
+    .menu.is-open{opacity:1;pointer-events:auto}
+
+    .menu__card{width:min(92vw,480px);max-height:80vh;overflow:auto;background:#0e2230;border:1px solid #2a9df4;border-radius:12px;padding:14px;color:#fff}
+    .menu__row{display:flex;gap:.5rem;align-items:center;margin:10px 0}
+    .menu__row input{flex:1 1 auto;min-width:0;padding:.55rem .6rem;border-radius:.5rem;border:none;outline:none}
+    .menu__actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.25rem}
+    .menu__btn{appearance:none;border:1px solid #2a9df4;background:#133147;color:#fff;padding:.5rem .75rem;border-radius:.5rem}
+    .menu__btn--danger{border-color:#b64b4b;background:#4a1f1f}
+    .menu__close{margin-left:auto}
+    #debugBox{display:none;max-height:30vh;overflow:auto;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:.5rem;padding:.6rem;font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    #debugBox.show{display:block}
+    .debug-tag{opacity:.7;margin-right:.4rem}
   </style>
 </head>
 <body id="body">
-  <h1>Dawah Luminance 💡 PWA simple update guest</h1>
+  <h1>Dawah Luminance 💡 PWA</h1>
   <div class="hint">One room. Text only.</div>
 
   <div class="topbar">
@@ -55,7 +52,7 @@
       <img id="avatar" class="avatar" alt="avatar" src="">
       <span id="badgeName"></span>
     </div>
-    <button id="menuBtn" class="menu-btn" type="button">☰ Menu</button>
+    <button id="menuOpen" class="menu-btn" type="button">☰ Menu</button>
   </div>
 
   <div id="messages">Loading…</div>
@@ -68,36 +65,35 @@
     </form>
   </div>
 
-  <!-- Slide-up Menu -->
-  <div id="menuPanel" class="menu-panel" aria-hidden="true">
-    <div class="menu-grid">
-      <div class="menu-row" style="justify-content:space-between;">
-        <strong>Menu</strong>
-        <button id="menuClose" class="close-btn" type="button">Close ✕</button>
+  <!-- Menu overlay -->
+  <div id="menu" class="menu" aria-hidden="true">
+    <div class="menu__card" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+      <div class="menu__row" style="justify-content:space-between;">
+        <strong id="menuTitle">Menu</strong>
+        <button id="menuClose" class="menu__btn menu__close" type="button">Close ✕</button>
       </div>
 
-      <!-- Simple note (replaces the old iOS banner) -->
-      <p style="opacity:.9;margin:.25rem 0 .5rem;">
-        Add to Home Screen and allow push notifications.
-      </p>
+      <p style="margin:.25rem 0 .6rem;opacity:.9">Add to Home Screen and allow push notifications.</p>
 
       <!-- Login -->
       <div><strong>Login</strong></div>
-      <div class="menu-row">
+      <div class="menu__row">
         <input id="loginUser" value="Guest" placeholder='Username e.g. "Guest"'>
         <input id="loginCode" value="12345" placeholder='Code e.g. "12345"'>
-        <button id="loginBtn" class="menu-btn" type="button">Login</button>
+        <button id="loginBtn" class="menu__btn" type="button">Login</button>
       </div>
 
       <!-- Notifications -->
       <div><strong>Notifications</strong></div>
-      <div class="menu-actions">
-        <button id="enablePush" class="menu-btn" type="button">Enable notifications</button>
-        <span id="permStatus" class="tiny"></span>
+      <div class="menu__actions">
+        <button id="enablePush" class="menu__btn" type="button">Enable notifications</button>
+        <button id="disableSW" class="menu__btn menu__btn--danger" type="button" title="Safe mode: unregister SW">Disable SW (safe mode)</button>
+        <button id="enableSW" class="menu__btn" type="button" title="Leave safe mode">Leave safe mode</button>
       </div>
+      <div id="permStatus" class="tiny" style="margin-top:.25rem;"></div>
 
       <!-- Debug -->
-      <div id="debugToggleRow">
+      <div class="menu__row" style="margin-top:.5rem;">
         <input id="debugToggle" type="checkbox">
         <label for="debugToggle">Show debug box</label>
       </div>
@@ -109,17 +105,14 @@
   </div>
 
   <script type="module">
-    // Firebase (CDN, modular)
+    /* ---------------- Firebase (CDN) ---------------- */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
     import {
       getFirestore, collection, addDoc, serverTimestamp,
       query, orderBy, limit, onSnapshot
     } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
-    import {
-      getMessaging, getToken, onMessage, isSupported
-    } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-messaging.js";
+    import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-messaging.js";
 
-    // --- Config ---
     const firebaseConfig = {
       apiKey: "AIzaSyDOZU1AJi7ONWlKYgiIJXWoj7X8VAoZ9rM",
       authDomain: "dawah-lumen-v1.firebaseapp.com",
@@ -130,35 +123,37 @@
       measurementId: "G-660003ER5V"
     };
 
-    // Init
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
-    // Elements
+    /* ---------------- Elements ---------------- */
     const messagesEl = document.getElementById('messages');
-    const form = document.getElementById('form');
+    const form      = document.getElementById('form');
     const chatInput = document.getElementById('chat');
-    const sendBtn = document.getElementById('sendBtn');
-    const warnEl = document.getElementById('warn');
+    const sendBtn   = document.getElementById('sendBtn');
+
     const userBadge = document.getElementById('userBadge');
-    const avatarEl = document.getElementById('avatar');
+    const avatarEl  = document.getElementById('avatar');
     const badgeName = document.getElementById('badgeName');
+    const warnEl    = document.getElementById('warn');
 
-    const menuBtn = document.getElementById('menuBtn');
-    const menuClose = document.getElementById('menuClose');
-    const menuPanel = document.getElementById('menuPanel');
+    // Menu
+    const menuEl     = document.getElementById('menu');
+    const menuOpen   = document.getElementById('menuOpen');
+    const menuClose  = document.getElementById('menuClose');
+    const loginUser  = document.getElementById('loginUser');
+    const loginCode  = document.getElementById('loginCode');
+    const loginBtn   = document.getElementById('loginBtn');
 
-    const loginUser = document.getElementById('loginUser');
-    const loginCode = document.getElementById('loginCode');
-    const loginBtn  = document.getElementById('loginBtn');
-
+    // Push / debug
     const enablePushBtn = document.getElementById('enablePush');
-    const permStatus = document.getElementById('permStatus');
+    const disableSWBtn  = document.getElementById('disableSW');
+    const enableSWBtn   = document.getElementById('enableSW');
+    const permStatus    = document.getElementById('permStatus');
+    const debugToggle   = document.getElementById('debugToggle');
+    const debugBox      = document.getElementById('debugBox');
 
-    const debugToggle = document.getElementById('debugToggle');
-    const debugBox = document.getElementById('debugBox');
-
-    // Profiles (includes Guest)
+    /* ---------------- Profiles ---------------- */
     const profiles_users = [
       ["Guest", "picture.png", "12345"],
       ["Abu", "abu.PNG", "4829Q"],
@@ -177,37 +172,40 @@
       ["The Lion", "thelion.PNG", "1984L"],
       ["Whiskey Blues", "whiskeybluews.PNG", "9203M"],
       ["safwan", "safwan.PNG", "9204M"],
-      ["Salaam Alaykum", "salaamalaykum.PNG", "9205M"],
-      ["Guest", "picture.png", "12345"],
+      ["Salaam Alaykum", "salaamalaykum.PNG", "9205M"]
     ];
     const avatarByName = new Map(profiles_users.map(([n, img]) => [n, img]));
 
-    // --- Logger (to debug box) ---
+    /* ---------------- Logger ---------------- */
     function log(line, tag='log'){
-      if (!debugBox) return;
       const stamp = new Date().toLocaleTimeString();
-      const el = document.createElement('div');
-      el.innerHTML = `<span class="debug-tag">[${stamp}] ${tag.toUpperCase()}:</span> ${line}`;
-      debugBox.appendChild(el);
-      debugBox.scrollTop = debugBox.scrollHeight;
-      console[tag === 'error' ? 'error' : 'log'](`[${tag}]`, line);
+      if (debugBox){
+        const el = document.createElement('div');
+        el.innerHTML = `<span class="debug-tag">[${stamp}] ${tag.toUpperCase()}:</span> ${line}`;
+        debugBox.appendChild(el);
+        debugBox.scrollTop = debugBox.scrollHeight;
+      }
+      const fn = (tag === 'error') ? 'error' : (tag === 'warn' ? 'warn' : 'log');
+      console[fn](`[${tag}]`, line);
     }
-
-    // Menu show/hide
-    menuBtn.addEventListener('click', () => { menuPanel.classList.add('show'); menuPanel.setAttribute('aria-hidden','false'); });
-    menuClose.addEventListener('click', () => { menuPanel.classList.remove('show'); menuPanel.setAttribute('aria-hidden','true'); });
-
     debugToggle.addEventListener('change', () => {
-      if (debugToggle.checked) debugBox.classList.add('show');
-      else debugBox.classList.remove('show');
+      debugBox.classList.toggle('show', debugToggle.checked);
     });
 
-    // Auth state
+    /* ---------------- Menu show/hide ---------------- */
+    function openMenu(){ menuEl.classList.add('is-open'); menuEl.setAttribute('aria-hidden','false'); }
+    function closeMenu(){ menuEl.classList.remove('is-open'); menuEl.setAttribute('aria-hidden','true'); }
+    menuOpen.addEventListener('click', openMenu);
+    menuClose.addEventListener('click', closeMenu);
+    // tap outside to close
+    menuEl.addEventListener('click', (e) => { if (e.target === menuEl) closeMenu(); });
+
+    /* ---------------- Auth ---------------- */
     let currentUser = null;
 
     function setFormEnabled(enabled){
       chatInput.disabled = !enabled;
-      sendBtn.disabled = !enabled;
+      sendBtn.disabled   = !enabled;
       chatInput.placeholder = enabled ? "Type message…" : "Messaging disabled";
     }
 
@@ -231,32 +229,28 @@
       log(`Logged in as ${u.name}`, 'info');
     }
 
-    // Login
     loginBtn.addEventListener('click', () => {
       const name = (loginUser.value || '').trim();
       const code = (loginCode.value || '').trim();
       const match = profiles_users.find(([n,_img,c]) => n === name && c === code);
-      if (!match){
-        warnEl.textContent = 'Invalid username or code.';
-        log('Invalid login attempt', 'warn');
-        return;
-      }
+      if (!match){ warnEl.textContent = 'Invalid username or code.'; log('Invalid login', 'warn'); return; }
       const [n, img, c] = match;
       warnEl.textContent = '';
       applyUser({ name:n, img, code:c });
+      closeMenu();
     });
 
-    // Restore user from session (optional)
-    const saved = sessionStorage.getItem('dl_user');
-    if (saved){
-      try{
+    // Restore if present
+    try{
+      const saved = sessionStorage.getItem('dl_user');
+      if (saved){
         const u = JSON.parse(saved);
-        const stillValid = profiles_users.some(([n,_i,c]) => n===u.name && c===u.code);
-        if (stillValid) applyUser(u);
-      }catch{}
-    }
+        const ok = profiles_users.some(([n,_i,c]) => n===u.name && c===u.code);
+        if (ok) applyUser(u);
+      }
+    }catch{}
 
-    // -------- Firestore (chat) --------
+    /* ---------------- Firestore (chat) ---------------- */
     const messagesRef = collection(db, 'messages');
     const q = query(messagesRef, orderBy('createdAt','asc'), limit(50));
     onSnapshot(q, (snap) => {
@@ -267,11 +261,11 @@
         const chat = m.chat || '';
         const img = avatarByName.get(name) || 'default-avatar.png';
 
-        const row = document.createElement('div'); row.className = 'msg';
-        const av  = document.createElement('img'); av.className = 'avatar'; av.src = `./images/${img}`; av.alt = name || 'avatar';
-        const bubble = document.createElement('div'); bubble.className = 'bubble';
-        const nm = document.createElement('div'); nm.className = 'name'; nm.textContent = name;
-        const body = document.createElement('div'); body.textContent = chat;
+        const row   = document.createElement('div'); row.className = 'msg';
+        const av    = document.createElement('img'); av.className = 'avatar'; av.src = `./images/${img}`; av.alt = name || 'avatar';
+        const bubble= document.createElement('div'); bubble.className = 'bubble';
+        const nm    = document.createElement('div'); nm.className = 'name'; nm.textContent = name;
+        const body  = document.createElement('div'); body.textContent = chat;
 
         bubble.append(nm, body);
         row.append(av, bubble);
@@ -282,7 +276,7 @@
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!currentUser) { alert('❌ Please log in first from Menu.'); return; }
+      if (!currentUser){ alert('❌ Please log in first from Menu.'); return; }
       const chat = (chatInput.value || '').trim();
       if (!chat) return;
       await addDoc(messagesRef, { username: currentUser.name, chat, createdAt: serverTimestamp() });
@@ -292,40 +286,66 @@
     });
 
     chatInput.addEventListener('focus', () => requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; }));
-    chatInput.addEventListener('blur',  () => requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; }));
+    chatInput.addEventListener('blur',  ()  => requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; }));
 
-    // -------- Web Push (user must click the button) --------
+    /* ---------------- Web Push with Safe Mode ---------------- */
     const SW_PATH   = '/Dawah-Lumen/firebase-messaging-sw.js?v=3';
     const VAPID_KEY = 'BNUEVOAAfOuD3NrU9PgnZMWXL42hZqsrSCJqMZUNJtC2cx840YvnSdEFzJEL58-J6p02IHaj3eOe6y-bSCr48XY';
 
-    enablePushBtn.addEventListener('click', async () => {
+    // Safe mode: disable SW/FCM to rule out caching issues
+    const qs = new URLSearchParams(location.search);
+    const SAFE_MODE = qs.get('nosw') === '1' || localStorage.getItem('dl_safe_mode') === '1';
+    log('safe_mode: ' + SAFE_MODE, 'info');
+    if (SAFE_MODE) permStatus.textContent = 'Safe mode: Service Worker disabled.';
+
+    disableSWBtn.addEventListener('click', async () => {
+      localStorage.setItem('dl_safe_mode', '1');
+      if ('serviceWorker' in navigator){
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const r of regs) await r.unregister();
+      }
+      alert('Safe mode on. Reloading without Service Worker.');
+      location.replace(location.pathname + '?nosw=1');
+    });
+
+    enableSWBtn.addEventListener('click', async () => {
+      localStorage.removeItem('dl_safe_mode');
+      const url = new URL(location.href);
+      url.searchParams.delete('nosw');
+      alert('Leaving safe mode. Reloading…');
+      location.replace(url.toString());
+    });
+
+    async function enablePushFlow(){
       try{
+        if (SAFE_MODE){ alert('Safe mode is on. Leave safe mode first.'); return; }
+
         const supported = await isSupported();
-        if (!supported) { permStatus.textContent = 'Push not supported in this browser.'; log('Push not supported', 'warn'); return; }
-        if (!('serviceWorker' in navigator)) { permStatus.textContent = 'Service workers not supported.'; log('No serviceWorker', 'warn'); return; }
+        if (!supported){ permStatus.textContent = 'Push not supported in this browser.'; log('Push not supported','warn'); return; }
+        if (!('serviceWorker' in navigator)){ permStatus.textContent = 'Service workers not supported.'; log('No SW','warn'); return; }
 
         const reg = await navigator.serviceWorker.register(SW_PATH);
-        log('Service worker registered', 'info');
+        log('Service worker registered','info');
 
         let permission = Notification.permission;
         if (permission !== 'granted') permission = await Notification.requestPermission();
         permStatus.textContent = `Permission: ${permission}`;
-        if (permission !== 'granted') { log('Permission not granted', 'warn'); return; }
+        if (permission !== 'granted'){ log('Permission not granted','warn'); return; }
 
         const messaging = getMessaging(app);
         const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-        if (token) {
+        if (token){
           await addDoc(collection(db, 'tokens'), { token, createdAt: serverTimestamp() });
           permStatus.innerHTML = '<span class="ok">Notifications enabled.</span>';
-          log('Token saved to Firestore', 'info');
-        } else {
+          log('Token saved','info');
+        }else{
           permStatus.textContent = 'Failed to get token.';
-          log('Failed to get token', 'error');
+          log('No token','error');
         }
 
         onMessage(messaging, (payload) => {
-          log('Foreground message received', 'info');
-          if (Notification.permission === 'granted') {
+          log('Foreground message','info');
+          if (Notification.permission === 'granted'){
             new Notification(payload?.notification?.title || 'New message', { body: payload?.notification?.body || '' });
           }
         });
@@ -334,12 +354,11 @@
         permStatus.textContent = 'Error enabling notifications. See console.';
         log('Enable push error: ' + (err?.message || err), 'error');
       }
-    });
+    }
+    enablePushBtn.addEventListener('click', enablePushFlow);
 
-    // Small debug
-    document.addEventListener('visibilitychange', () => {
-      log('visibility: ' + document.visibilityState, 'info');
-    });
+    // small visibility breadcrumb
+    document.addEventListener('visibilitychange', () => log('visibility: ' + document.visibilityState, 'info'));
   </script>
 </body>
 </html>

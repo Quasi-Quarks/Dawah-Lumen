@@ -1,8 +1,6 @@
-// firebase-messaging-sw.js (must be at /Dawah-Lumen/firebase-messaging-sw.js)
+// firebase-messaging-sw.js
 importScripts('https://www.gstatic.com/firebasejs/12.3.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/12.3.0/firebase-messaging-compat.js');
-
-console.log('[sw] loading...');
 
 firebase.initializeApp({
   apiKey: "AIzaSyDOZU1AJi7ONWlKYgiIJXWoj7X8VAoZ9rM",
@@ -14,30 +12,32 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
-console.log('[sw] messaging initialized');
 
-// Called when a message arrives and the page is in the background
+// If the message already has a notification payload, FCM will show it.
+// Avoid calling showNotification yourself to prevent duplicates.
 messaging.onBackgroundMessage((payload) => {
-  console.log('[sw] onBackgroundMessage', payload);
-  const title = payload.notification?.title || 'New message';
-  const options = {
-    body: payload.notification?.body || '',
-    icon: '/Dawah-Lumen/favicon.ico', // ensure this exists or replace with a valid icon
-    data: { url: (payload.fcmOptions && payload.fcmOptions.link) || 'https://quasi-quarks.github.io/Dawah-Lumen/' }
-  };
-  self.registration.showNotification(title, options);
+  if (payload && payload.notification) {
+    // Skip custom display to avoid double notifications.
+    console.log('[sw] Skipping showNotification (notification payload present).');
+    return;
+  }
+  // Only handle data-only messages yourself:
+  const title = (payload?.data?.title) || 'New message';
+  const body  = (payload?.data?.body)  || '';
+  self.registration.showNotification(title, {
+    body,
+    icon: '/Dawah-Lumen/favicon.ico',
+    data: { url: 'https://quasi-quarks.github.io/Dawah-Lumen/' }
+  });
 });
 
-// Make clicks open/focus the chat
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const url = event.notification?.data?.url || 'https://quasi-quarks.github.io/Dawah-Lumen/';
   event.waitUntil((async () => {
-    const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-    for (const client of allClients) {
-      if (client.url.includes('/Dawah-Lumen/') && 'focus' in client) {
-        return client.focus();
-      }
+    const clientsArr = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of clientsArr) {
+      if (c.url.includes('/Dawah-Lumen/') && 'focus' in c) return c.focus();
     }
     return clients.openWindow(url);
   })());

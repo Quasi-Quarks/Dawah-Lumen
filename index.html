@@ -93,6 +93,23 @@ chatInput.addEventListener('focus', () => {
 chatInput.addEventListener('blur', () => {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 });
+
+// Listen for the 'focus' event on the input field
+chatInput.addEventListener('focus', function() {
+    // Scroll to the bottom of the page when the input is focused
+    window.scrollTo({
+        top: document.body.scrollHeight,   // Scroll to the bottom of the page
+        behavior: 'smooth'                 // Smooth scrolling
+    });
+});
+
+// Optionally, scroll to the bottom when input loses focus (blur)
+chatInput.addEventListener('blur', function() {
+    window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+    });
+});
     const unameInput = document.getElementById('username');
     const warnEl = document.getElementById('warn');
     const enablePushBtn = document.getElementById('enablePush');
@@ -220,7 +237,22 @@ chatInput.addEventListener('blur', () => {
       chatInput.value = '';
       chatInput.focus();
       messagesEl.scrollTop = messagesEl.scrollHeight;
+      // Listen for the 'focus' event on the input field
+chatInput.addEventListener('focus', function() {
+    // Scroll to the bottom of the page when the input is focused
+    window.scrollTo({
+        top: document.body.scrollHeight,   // Scroll to the bottom of the page
+        behavior: 'smooth'                 // Smooth scrolling
+    });
+});
 
+// Optionally, scroll to the bottom when input loses focus (blur)
+chatInput.addEventListener('blur', function() {
+    window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+    });
+});
     });
 
     // -----------------------

@@ -32,7 +32,7 @@
   <div id="warn" class="warn"></div>
 
   <div id="messages">Loading…</div>
-
+  <div id="buffer" style="margin-top: 32px; opacity: 0;">Loading</div>
   <div class="formsend">
     <form id="form" class="row">
       <input id="chat" type="text" placeholder="Type message…" maxlength="500" />
@@ -40,11 +40,11 @@
     </form>
   </div>
 
-  <div class="tiny">
+  <!-- <div class="tiny">
     Debug: SW path <code id="swPathOut"></code> ·
     Permission <code id="permOut"></code> ·
     Token (first 12) <code id="tokOut"></code>
-  </div>
+  </div> -->
 
   <script type="module">
     // Firebase (CDN, modular)

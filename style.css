@@ -335,11 +335,9 @@ button {
       height: 60px;
       min-height: 20px;
       max-height: 30px;
-
- 
       min-width: max-content;
       width: 92%;
-      max-width: 50%;
+      max-width: 70%;
       margin-right: 2px;
     }
 
@@ -364,7 +362,7 @@ form#form { /*form holding input */
    display: flex;
    justify-content: space-around;
    align-items: center;
-   /* border: 2px solid green; */
+   border: 2px solid green;
    min-width: 90%;
    width: 100%;
    max-width: 100%;

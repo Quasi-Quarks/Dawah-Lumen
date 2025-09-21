@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Dawah Lumen – Public Chat v9</title>
+  <title>Dawah Lumen – Public Chat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
@@ -19,23 +19,22 @@
     .ok { color: #0a7a0a; }
     .tiny { font-size: .85rem; color:#666; }
     code { background:#f6f6f6; padding: .1rem .3rem; border-radius: .25rem; }
-    .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
-    .userBadge { display:flex; align-items:center; gap:.5rem; margin:.5rem 0 1rem; }
-    .muted { color:#888; }
   </style>
 </head>
 <body>
-  <h1>Dawah Lumen – Public Chat v10 images</h1>
-  <div class="hint">One room. Text only. Username is chosen from the link (URL).</div>
+  <h1>Dawah Lumen – Public Chat v8</h1>
+  <div class="hint">One room. Text only. Predefined usernames.</div>
 
   <div class="row">
     <label>Username:
-      <input id="username" placeholder="(from URL)" />
+      <input id="username" list="names" placeholder="Pick a name" />
     </label>
-    <div class="userBadge muted" id="userBadge" hidden>
-      <img id="avatar" class="avatar" alt="avatar" src="" />
-      <span id="badgeName"></span>
-    </div>
+    <datalist id="names">
+      <option value="Admin" />
+      <option value="Sara" />
+      <option value="Ali" />
+      <option value="Bassam" />
+    </datalist>
     <button id="enablePush" type="button">Enable notifications</button>
   </div>
   <div id="permStatus" class="tiny"></div>
@@ -93,71 +92,9 @@
     const permOut = document.getElementById('permOut');
     const tokOut = document.getElementById('tokOut');
 
-    const userBadge = document.getElementById('userBadge');
-    const avatarEl = document.getElementById('avatar');
-    const badgeName = document.getElementById('badgeName');
-
-    // --------------------------------------------------
-    // URL-based access control (username + secret code)
-    // --------------------------------------------------
-    // Profiles: [username, imageFileIn/images, secretCode(4 digits + 1 letter)]
-    const profiles_users = [
-      ["Abu", "abu.PNG", "4829Q"],
-      ["Chaos", "chaos.PNG", "1937A"],
-      ["Cowbow", "cowboy.PNG", "5921X"],
-      ["Da Kid", "dakid.jpg", "7704B"],
-      ["Draco", "draco.PNG", "8382Z"],
-      ["Empress", "empress.jpg", "2229C"],
-      ["Love", "farah.PNG", "9031D"],
-      ["Abdul Jaleel", "gmoney.webp", "5167E"],
-      ["Hakeem", "hakeem.avif", "1473F"],
-      ["Lut", "lut.PNG", "3345G"],
-      ["Mr Khan", "mrkhan.PNG", "4402H"],
-      ["Premier", "premeir.jpg", "6619J"],
-      ["Sword of Allah", "swordofallah.jpg", "7832K"],
-      ["The Lion", "thelion.PNG", "1984L"],
-      ["Whiskey Blues", "whiskeybluews.PNG", "9203M"]
-    ];
-
-    const params = new URLSearchParams(window.location.search);
-    // Note: '+' in query becomes space when decoded (good for names like "The Lion")
-    const urlusername = (params.get("refusrname") || "").trim();
-    const refpassword = (params.get("refpassword") || "").trim();
-
-    let currentUser = null; // { name, img, code }
-    // Use a simple for loop as requested
-    for (let i = 0; i < profiles_users.length; i++) {
-      const name = profiles_users[i][0];
-      const img  = profiles_users[i][1];
-      const code = profiles_users[i][2];
-      if (name === urlusername && code === refpassword) {
-        currentUser = { name, img, code };
-        break;
-      }
-    }
-
-    if (!currentUser) {
-      console.warn('[auth] URL did not match any profile', { urlusername, refpassword });
-      warnEl.textContent = 'Invalid link details. You cannot send messages.';
-      // lock the form when not authenticated
-      form.style.display = 'none';
-      unameInput.value = '(invalid)';
-      unameInput.readOnly = true;
-    } else {
-      console.log('[auth] Authenticated as:', currentUser.name);
-      unameInput.value = currentUser.name;
-      unameInput.readOnly = true;
-      // show avatar badge
-      avatarEl.src = `./images/${currentUser.img}`;
-      avatarEl.alt = currentUser.name;
-      badgeName.textContent = currentUser.name;
-      userBadge.hidden = false;
-    }
-
-    // -------------------
-    // Firestore data model
-    // -------------------
+    // Data model
     const messagesRef = collection(db, 'messages');
+    const ALLOWED = ["Admin","Sara","Ali","Bassam"];
 
     // Live view (latest 50)
     const q = query(messagesRef, orderBy('createdAt','asc'), limit(50));
@@ -174,22 +111,19 @@
       messagesEl.scrollTop = messagesEl.scrollHeight;
     });
 
-    // Send message (only if authenticated by URL)
+    // Send message
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       warnEl.textContent = '';
-      if (!currentUser) {
-        alert('❌ Please enter the correct details in the link.');
+      const username = (unameInput.value || '').trim();
+      const chat = (chatInput.value || '').trim();
+      if (!ALLOWED.includes(username)) {
+        warnEl.textContent = 'Username not allowed. Pick one from the list.';
         return;
       }
-      const chat = (chatInput.value || '').trim();
       if (!chat) return;
-      console.debug('[chat] sending', { username: currentUser.name, chat });
-      await addDoc(messagesRef, {
-        username: currentUser.name,
-        chat,
-        createdAt: serverTimestamp()
-      });
+      console.debug('[chat] sending', { username, chat });
+      await addDoc(messagesRef, { username, chat, createdAt: serverTimestamp() });
       chatInput.value = '';
       chatInput.focus();
     });
@@ -253,7 +187,7 @@
 
     // helper
     function escapeHtml(s){
-      return String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
+      return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
     }
 
     // Quick visibility log to know if tab is backgrounded

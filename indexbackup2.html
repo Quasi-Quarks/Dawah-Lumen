@@ -2,56 +2,42 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Dawah Lumen – Public Chat v10</title>
+  <title>Dawah Lumen – Public Chat v9</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
     body { max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
     h1 { margin-bottom: .25rem; }
     .hint { color:#666; margin-bottom: 1rem; }
-
     #messages { display: flex; flex-direction: column; gap: .5rem; margin: 1rem 0; }
-
-    .msg { display:flex; align-items: flex-start; gap:.6rem; padding:.6rem .8rem; border:1px solid #ddd; border-radius:.6rem; }
-    .msg .bubble { flex: 1; }
-    .msg .name { font-weight:600; margin-bottom:.15rem; }
-    .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
-
+    .msg { padding: .6rem .8rem; border: 1px solid #ddd; border-radius: .6rem; }
     .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
     input[type="text"] { padding: .6rem .7rem; }
     #chat { flex: 1; min-width: 220px; }
     button { padding: .6rem .9rem; cursor: pointer; }
-
     .warn { color: #b00020; margin-top: .25rem; }
     .ok { color: #0a7a0a; }
     .tiny { font-size: .85rem; color:#666; }
     code { background:#f6f6f6; padding: .1rem .3rem; border-radius: .25rem; }
-    .userBadge { display:flex; align-items:center; gap:.5rem; margin:.5rem 0 1rem; color:#888; }
-    .banner { display:none; background:#f6fbff; border:1px solid #cde9ff; padding:.6rem .8rem; border-radius:.5rem; margin:.75rem 0; }
-    .banner.show { display:block; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
+    .userBadge { display:flex; align-items:center; gap:.5rem; margin:.5rem 0 1rem; }
+    .muted { color:#888; }
   </style>
 </head>
 <body>
-  <h1>Dawah Lumen – Public Chat</h1>
+  <h1>Dawah Lumen – Public Chat v10.1 images</h1>
   <div class="hint">One room. Text only. Username is chosen from the link (URL).</div>
 
   <div class="row">
     <label>Username:
       <input id="username" placeholder="(from URL)" />
     </label>
-    <div class="userBadge" id="userBadge" hidden>
+    <div class="userBadge muted" id="userBadge" hidden>
       <img id="avatar" class="avatar" alt="avatar" src="" />
       <span id="badgeName"></span>
     </div>
     <button id="enablePush" type="button">Enable notifications</button>
   </div>
-
-  <!-- Auto-enable banner (shown if refnotification=set needs a gesture) -->
-  <div id="notifBanner" class="banner">
-    Click to finish enabling notifications for this device:
-    <button id="enablePushInline" type="button">Enable now</button>
-  </div>
-
   <div id="permStatus" class="tiny"></div>
   <div id="warn" class="warn"></div>
 
@@ -101,9 +87,7 @@
     const unameInput = document.getElementById('username');
     const warnEl = document.getElementById('warn');
     const enablePushBtn = document.getElementById('enablePush');
-    const enablePushInlineBtn = document.getElementById('enablePushInline');
     const permStatus = document.getElementById('permStatus');
-    const notifBanner = document.getElementById('notifBanner');
 
     const swPathOut = document.getElementById('swPathOut');
     const permOut = document.getElementById('permOut');
@@ -134,17 +118,18 @@
       ["The Lion", "thelion.PNG", "1984L"],
       ["Whiskey Blues", "whiskeybluews.PNG", "9203M"]
     ];
-    // Quick map for avatar lookup by name
-    const avatarByName = new Map(profiles_users.map(([n, img]) => [n, img]));
 
     const params = new URLSearchParams(window.location.search);
+    // Note: '+' in query becomes space when decoded (good for names like "The Lion")
     const urlusername = (params.get("refusrname") || "").trim();
     const refpassword = (params.get("refpassword") || "").trim();
-    const refnotification = (params.get("refnotification") || "").trim().toLowerCase();
 
     let currentUser = null; // { name, img, code }
+    // Use a simple for loop as requested
     for (let i = 0; i < profiles_users.length; i++) {
-      const [name, img, code] = profiles_users[i];
+      const name = profiles_users[i][0];
+      const img  = profiles_users[i][1];
+      const code = profiles_users[i][2];
       if (name === urlusername && code === refpassword) {
         currentUser = { name, img, code };
         break;
@@ -154,6 +139,7 @@
     if (!currentUser) {
       console.warn('[auth] URL did not match any profile', { urlusername, refpassword });
       warnEl.textContent = 'Invalid link details. You cannot send messages.';
+      // lock the form when not authenticated
       form.style.display = 'none';
       unameInput.value = '(invalid)';
       unameInput.readOnly = true;
@@ -173,34 +159,17 @@
     // -------------------
     const messagesRef = collection(db, 'messages');
 
-    // Live view (latest 50) with avatar
+    // Live view (latest 50)
     const q = query(messagesRef, orderBy('createdAt','asc'), limit(50));
     onSnapshot(q, (snap) => {
       console.debug('[chat] snapshot size', snap.size);
       messagesEl.innerHTML = '';
       snap.forEach(doc => {
         const m = doc.data();
-        const name = m.username || '';
-        const chat = m.chat || '';
-        const img = avatarByName.get(name) || 'default-avatar.png'; // put a default in /images if you want
-        const row = document.createElement('div');
-        row.className = 'msg';
-        const av = document.createElement('img');
-        av.className = 'avatar';
-        av.src = `./images/${img}`;
-        av.alt = name || 'avatar';
-        const bubble = document.createElement('div');
-        bubble.className = 'bubble';
-        const nm = document.createElement('div');
-        nm.className = 'name';
-        nm.textContent = name;
-        const body = document.createElement('div');
-        body.innerHTML = escapeHtml(chat);
-        bubble.appendChild(nm);
-        bubble.appendChild(body);
-        row.appendChild(av);
-        row.appendChild(bubble);
-        messagesEl.appendChild(row);
+        const div = document.createElement('div');
+        div.className = 'msg';
+        div.innerHTML = `<b>${escapeHtml(m.username || "")}</b><br>${escapeHtml(m.chat || "")}`;
+        messagesEl.appendChild(div);
       });
       messagesEl.scrollTop = messagesEl.scrollHeight;
     });
@@ -232,7 +201,7 @@
     const VAPID_KEY = 'BNUEVOAAfOuD3NrU9PgnZMWXL42hZqsrSCJqMZUNJtC2cx840YvnSdEFzJEL58-J6p02IHaj3eOe6y-bSCr48XY';
     swPathOut.textContent = SW_PATH;
 
-    async function enablePushFlow() {
+    enablePushBtn.addEventListener('click', async () => {
       try {
         const supported = await isSupported();
         console.debug('[push] isSupported', supported);
@@ -249,18 +218,12 @@
         const reg = await navigator.serviceWorker.register(SW_PATH);
         console.debug('[sw] state', reg.installing?.state, reg.active?.state);
 
-        // Some browsers require a user gesture for requestPermission; this may throw if called silently.
         const permission = await Notification.requestPermission();
         permOut.textContent = permission;
         permStatus.textContent = `Permission: ${permission}`;
         console.debug('[push] permission', permission);
-        if (permission !== 'granted') {
-          // Surface the inline banner for a manual click if auto attempt failed.
-          notifBanner.classList.add('show');
-          return;
-        }
+        if (permission !== 'granted') return;
 
-        // Get FCM token
         const messaging = getMessaging(app);
         const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
         console.debug('[push] token', token);
@@ -268,15 +231,14 @@
         if (token) {
           await addDoc(collection(db, 'tokens'), { token, createdAt: serverTimestamp() });
           permStatus.innerHTML = '<span class="ok">Notifications enabled.</span>';
-          notifBanner.classList.remove('show');
         } else {
           permStatus.textContent = 'Failed to get token.';
-          notifBanner.classList.add('show');
         }
 
         // Foreground messages (tab focused)
         onMessage(messaging, (payload) => {
           console.debug('[push] onMessage (foreground)', payload);
+          // Optional toast while focused:
           if (Notification.permission === 'granted') {
             new Notification(payload.notification?.title || 'New message', {
               body: payload.notification?.body || ''
@@ -286,20 +248,8 @@
       } catch (err) {
         console.error('[push] enable error', err);
         permStatus.textContent = 'Error enabling notifications. See console.';
-        // Show banner to let user retry with a click
-        notifBanner.classList.add('show');
       }
-    }
-
-    // Button + inline banner both run the same flow
-    enablePushBtn.addEventListener('click', enablePushFlow);
-    enablePushInlineBtn.addEventListener('click', enablePushFlow);
-
-    // If URL asks for notifications, try automatically; if browser blocks,
-    // the banner will appear to finish with one click.
-    if (refnotification === 'set') {
-      enablePushFlow();
-    }
+    });
 
     // helper
     function escapeHtml(s){

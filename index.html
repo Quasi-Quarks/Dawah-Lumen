@@ -11,7 +11,7 @@
     h1 { margin-bottom: .25rem; }
     .hint { color:#666; margin-bottom: 1rem; }
 
-    #messages { display: flex; flex-direction: column; gap: .5rem; margin: 1rem 0; }
+    #messages {display: flex;flex-direction: column;gap: 0.4rem;margin: 2.5rem 0px;x;}
 
     .msg {
     display:flex;
@@ -28,9 +28,9 @@
     }
     .msg .bubble { flex: 1; }
     .msg .name {font-weight:600;margin-bottom:.15rem;font-size: large;}
-    .avatar {width: 43px;height: 36px;border-radius: 50%;object-fit: cover;border: 1px solid #ddd;}
+    .avatar {width: 36px;height: 36px;border-radius: 50%;object-fit: cover;border: 1px solid #ddd;}
 
-    .row {display: flex;gap: .5rem;flex-wrap: wrap;align-items: center;display: none;}
+    .row {display: flex;gap: -5.5rem;flex-wrap: wrap;align-items: center;/* display: none; */}
     input[type="text"] { padding: .6rem .7rem; }
     #chat { flex: 1; min-width: 220px; }
     button { padding: .6rem .9rem; cursor: pointer; }
@@ -48,7 +48,7 @@
   <h1>Dawah Luminance 💡</h1>
   <div class="hint">One room. Text only. Username is chosen from the link (URL).</div>
 
-  <div class="row">
+  <div id="debugform" class="row">
     <label>Username:
       <input id="username" placeholder="(from URL)" />
     </label>
@@ -79,6 +79,11 @@
     Debug: SW path <code id="swPathOut"></code> ·
     Permission <code id="permOut"></code> ·
     Token (first 12) <code id="tokOut"></code>
+  </div>
+
+  <div class="margin">
+
+
   </div>
 
   <script type="module">

@@ -153,6 +153,7 @@ h1 {
     url('background.jpg') no-repeat center center / cover;
   background-size: 400% 400%, cover;
   animation: animateBackground 15s ease infinite;
+  background-attachment: fixed;
 }
 
 @keyframes animateBackground {
@@ -165,4 +166,20 @@ h1 {
   100% {
     background-position: 0% 50%, center;
   }
+}
+
+
+form#form {
+    position: fixed;
+    bottom: 20px;
+    display: flex;
+}
+
+div#debugform {
+    display: none;
+}
+
+.margin {
+    height: 40px;
+    margin-top: 52px;
 }

@@ -2,75 +2,179 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Public Chat</title>
+  <title>Dawah Lumen – Public Chat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 680px; margin: 2rem auto; padding: 0 1rem; }
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    body { max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { margin-bottom: .25rem; }
+    .hint { color:#666; margin-bottom: 1rem; }
     #messages { display: flex; flex-direction: column; gap: .5rem; margin: 1rem 0; }
-    .msg { padding: .5rem .75rem; border: 1px solid #ddd; border-radius: .5rem; }
-    form { display: flex; gap: .5rem; margin-top: 1rem; }
-    input { padding: .5rem; } input[name="chat"]{flex:1;}
+    .msg { padding: .6rem .8rem; border: 1px solid #ddd; border-radius: .6rem; }
+    .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+    input[type="text"] { padding: .6rem .7rem; }
+    #chat { flex: 1; min-width: 220px; }
+    button { padding: .6rem .9rem; cursor: pointer; }
+    .warn { color: #b00020; margin-top: .25rem; }
+    .ok { color: #0a7a0a; }
+    .tiny { font-size: .85rem; color:#666; }
   </style>
 </head>
 <body>
-  <h1>Public Chat (username + message)</h1>
+  <h1>Dawah Lumen – Public Chat</h1>
+  <div class="hint">One room. Text only. Predefined usernames.</div>
 
-  <label>Username:
-    <input id="u" list="names" placeholder="Pick a name" />
-  </label>
-  <datalist id="names">
-    <option value="Admin" /><option value="Sara" /><option value="Ali" /><option value="Bassam" />
-  </datalist>
+  <div class="row">
+    <label>Username:
+      <input id="username" list="names" placeholder="Pick a name" />
+    </label>
+    <datalist id="names">
+      <option value="Admin" />
+      <option value="Sara" />
+      <option value="Ali" />
+      <option value="Bassam" />
+    </datalist>
+    <button id="enablePush" type="button">Enable notifications</button>
+  </div>
+  <div id="permStatus" class="tiny"></div>
+  <div id="warn" class="warn"></div>
 
   <div id="messages">Loading…</div>
 
-  <form id="f">
-    <input id="c" name="chat" type="text" placeholder="Type message…" maxlength="500" />
+  <form id="form" class="row">
+    <input id="chat" type="text" placeholder="Type message…" maxlength="500" />
     <button type="submit">Send</button>
   </form>
 
   <script type="module">
+    // Firebase (CDN, modular)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp,
-             query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+    import {
+      getFirestore, collection, addDoc, serverTimestamp,
+      query, orderBy, limit, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+    import {
+      getMessaging, getToken, onMessage, isSupported
+    } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-messaging.js";
 
-    const firebaseConfig = {/* paste yours here */};
+    // --- Your Firebase config ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDOZU1AJi7ONWlKYgiIJXWoj7X8VAoZ9rM",
+      authDomain: "dawah-lumen-v1.firebaseapp.com",
+      projectId: "dawah-lumen-v1",
+      storageBucket: "dawah-lumen-v1.firebasestorage.app",
+      messagingSenderId: "796313906776",
+      appId: "1:796313906776:web:045884e106cf4ee5f2e42d",
+      measurementId: "G-660003ER5V"
+    };
+
+    // Init
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
-    const messages = collection(db, "messages");
-    const ALLOWED  = ["Admin","Sara","Ali","Bassam"];
+    // Elements
+    const messagesEl = document.getElementById('messages');
+    const form = document.getElementById('form');
+    const chatInput = document.getElementById('chat');
+    const unameInput = document.getElementById('username');
+    const warnEl = document.getElementById('warn');
+    const enablePushBtn = document.getElementById('enablePush');
+    const permStatus = document.getElementById('permStatus');
 
-    const u = document.getElementById("u");
-    const c = document.getElementById("c");
-    const list = document.getElementById("messages");
-    const form = document.getElementById("f");
+    // Data model: single "messages" collection with fields: username, chat, createdAt
+    const messagesRef = collection(db, 'messages');
+    const ALLOWED = ["Admin","Sara","Ali","Bassam"];
 
-    // live view
-    const q = query(messages, orderBy("createdAt","asc"), limit(50));
-    onSnapshot(q, snap => {
-      list.innerHTML = "";
+    // Live view (latest 50, oldest first)
+    const q = query(messagesRef, orderBy('createdAt','asc'), limit(50));
+    onSnapshot(q, (snap) => {
+      messagesEl.innerHTML = '';
       snap.forEach(doc => {
         const m = doc.data();
-        const div = document.createElement("div");
-        div.className = "msg";
-        div.innerHTML = `<b>${escapeHtml(m.username||"")}</b><br>${escapeHtml(m.chat||"")}`;
-        list.appendChild(div);
+        const div = document.createElement('div');
+        div.className = 'msg';
+        div.innerHTML = `<b>${escapeHtml(m.username || "")}</b><br>${escapeHtml(m.chat || "")}`;
+        messagesEl.appendChild(div);
       });
-      list.scrollTop = list.scrollHeight;
+      messagesEl.scrollTop = messagesEl.scrollHeight;
     });
 
-    // send
-    form.addEventListener("submit", async (e) => {
+    // Send message
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const username = (u.value||"").trim();
-      const chat = (c.value||"").trim();
-      if (!ALLOWED.includes(username) || !chat) return;
-      await addDoc(messages, { username, chat, createdAt: serverTimestamp() });
-      c.value = ""; c.focus();
+      warnEl.textContent = '';
+      const username = (unameInput.value || '').trim();
+      const chat = (chatInput.value || '').trim();
+      if (!ALLOWED.includes(username)) {
+        warnEl.textContent = 'Username not allowed. Pick one from the list.';
+        return;
+      }
+      if (!chat) return;
+      await addDoc(messagesRef, { username, chat, createdAt: serverTimestamp() });
+      chatInput.value = '';
+      chatInput.focus();
     });
 
-    function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]) )}
+    // -----------------------
+    // Web Push (FCM) setup
+    // -----------------------
+    // IMPORTANT for GitHub Pages project site:
+    // Your site is https://quasi-quarks.github.io/Dawah-Lumen/
+    // So the SW must be registered with the subpath:
+    const SW_PATH = '/Dawah-Lumen/firebase-messaging-sw.js';
+    const VAPID_KEY = 'BNUEVOAAfOuD3NrU9PgnZMWXL42hZqsrSCJqMZUNJtC2cx840YvnSdEFzJEL58-J6p02IHaj3eOe6y-bSCr48XY';
+
+    enablePushBtn.addEventListener('click', async () => {
+      try {
+        const supported = await isSupported();
+        if (!supported) {
+          permStatus.textContent = 'Push not supported in this browser.';
+          return;
+        }
+        if (!('serviceWorker' in navigator)) {
+          permStatus.textContent = 'Service workers not supported.';
+          return;
+        }
+
+        // Register service worker at the correct path
+        const reg = await navigator.serviceWorker.register(SW_PATH);
+
+        // Ask for permission
+        const permission = await Notification.requestPermission();
+        permStatus.textContent = `Permission: ${permission}`;
+        if (permission !== 'granted') return;
+
+        // Get token & save it
+        const messaging = getMessaging(app);
+        const token = await getToken(messaging, {
+          vapidKey: VAPID_KEY,
+          serviceWorkerRegistration: reg
+        });
+
+        if (token) {
+          await addDoc(collection(db, 'tokens'), { token, createdAt: serverTimestamp() });
+          permStatus.innerHTML = '<span class="ok">Notifications enabled.</span>';
+        } else {
+          permStatus.textContent = 'Failed to get token.';
+        }
+
+        // Foreground messages (tab open)
+        onMessage(messaging, (payload) => {
+          // Optional toast/alert
+          if (payload?.notification?.title) {
+            alert(`${payload.notification.title}\n\n${payload.notification.body || ''}`);
+          }
+        });
+      } catch (err) {
+        console.error(err);
+        permStatus.textContent = 'Error enabling notifications. See console.';
+      }
+    });
+
+    // helper
+    function escapeHtml(s){
+      return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
+    }
   </script>
 </body>
 </html>

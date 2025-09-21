@@ -18,6 +18,7 @@
     .warn { color: #b00020; margin-top: .25rem; }
     .ok { color: #0a7a0a; }
     .tiny { font-size: .85rem; color:#666; }
+    code { background:#f6f6f6; padding: .1rem .3rem; border-radius: .25rem; }
   </style>
 </head>
 <body>
@@ -46,6 +47,12 @@
     <button type="submit">Send</button>
   </form>
 
+  <div class="tiny">
+    Debug: SW path <code id="swPathOut"></code> ·
+    Permission <code id="permOut"></code> ·
+    Token (first 12) <code id="tokOut"></code>
+  </div>
+
   <script type="module">
     // Firebase (CDN, modular)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
@@ -57,7 +64,7 @@
       getMessaging, getToken, onMessage, isSupported
     } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-messaging.js";
 
-    // --- Your Firebase config ---
+    // --- Config ---
     const firebaseConfig = {
       apiKey: "AIzaSyDOZU1AJi7ONWlKYgiIJXWoj7X8VAoZ9rM",
       authDomain: "dawah-lumen-v1.firebaseapp.com",
@@ -72,7 +79,7 @@
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
-    // Elements
+    // DOM
     const messagesEl = document.getElementById('messages');
     const form = document.getElementById('form');
     const chatInput = document.getElementById('chat');
@@ -81,13 +88,18 @@
     const enablePushBtn = document.getElementById('enablePush');
     const permStatus = document.getElementById('permStatus');
 
-    // Data model: single "messages" collection with fields: username, chat, createdAt
+    const swPathOut = document.getElementById('swPathOut');
+    const permOut = document.getElementById('permOut');
+    const tokOut = document.getElementById('tokOut');
+
+    // Data model
     const messagesRef = collection(db, 'messages');
     const ALLOWED = ["Admin","Sara","Ali","Bassam"];
 
-    // Live view (latest 50, oldest first)
+    // Live view (latest 50)
     const q = query(messagesRef, orderBy('createdAt','asc'), limit(50));
     onSnapshot(q, (snap) => {
+      console.debug('[chat] snapshot size', snap.size);
       messagesEl.innerHTML = '';
       snap.forEach(doc => {
         const m = doc.data();
@@ -110,23 +122,23 @@
         return;
       }
       if (!chat) return;
+      console.debug('[chat] sending', { username, chat });
       await addDoc(messagesRef, { username, chat, createdAt: serverTimestamp() });
       chatInput.value = '';
       chatInput.focus();
     });
 
     // -----------------------
-    // Web Push (FCM) setup
+    // Push setup + debugging
     // -----------------------
-    // IMPORTANT for GitHub Pages project site:
-    // Your site is https://quasi-quarks.github.io/Dawah-Lumen/
-    // So the SW must be registered with the subpath:
-    const SW_PATH = '/Dawah-Lumen/firebase-messaging-sw.js';
+    const SW_PATH = '/Dawah-Lumen/firebase-messaging-sw.js?v=3'; // cache-bust
     const VAPID_KEY = 'BNUEVOAAfOuD3NrU9PgnZMWXL42hZqsrSCJqMZUNJtC2cx840YvnSdEFzJEL58-J6p02IHaj3eOe6y-bSCr48XY';
+    swPathOut.textContent = SW_PATH;
 
     enablePushBtn.addEventListener('click', async () => {
       try {
         const supported = await isSupported();
+        console.debug('[push] isSupported', supported);
         if (!supported) {
           permStatus.textContent = 'Push not supported in this browser.';
           return;
@@ -136,21 +148,20 @@
           return;
         }
 
-        // Register service worker at the correct path
+        console.debug('[sw] registering', SW_PATH);
         const reg = await navigator.serviceWorker.register(SW_PATH);
+        console.debug('[sw] state', reg.installing?.state, reg.active?.state);
 
-        // Ask for permission
         const permission = await Notification.requestPermission();
+        permOut.textContent = permission;
         permStatus.textContent = `Permission: ${permission}`;
+        console.debug('[push] permission', permission);
         if (permission !== 'granted') return;
 
-        // Get token & save it
         const messaging = getMessaging(app);
-        const token = await getToken(messaging, {
-          vapidKey: VAPID_KEY,
-          serviceWorkerRegistration: reg
-        });
-
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+        console.debug('[push] token', token);
+        tokOut.textContent = token ? token.slice(0, 12) : '';
         if (token) {
           await addDoc(collection(db, 'tokens'), { token, createdAt: serverTimestamp() });
           permStatus.innerHTML = '<span class="ok">Notifications enabled.</span>';
@@ -158,15 +169,18 @@
           permStatus.textContent = 'Failed to get token.';
         }
 
-        // Foreground messages (tab open)
+        // Foreground messages (tab focused)
         onMessage(messaging, (payload) => {
-          // Optional toast/alert
-          if (payload?.notification?.title) {
-            alert(`${payload.notification.title}\n\n${payload.notification.body || ''}`);
+          console.debug('[push] onMessage (foreground)', payload);
+          // Optional toast while focused:
+          if (Notification.permission === 'granted') {
+            new Notification(payload.notification?.title || 'New message', {
+              body: payload.notification?.body || ''
+            });
           }
         });
       } catch (err) {
-        console.error(err);
+        console.error('[push] enable error', err);
         permStatus.textContent = 'Error enabling notifications. See console.';
       }
     });
@@ -175,6 +189,11 @@
     function escapeHtml(s){
       return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
     }
+
+    // Quick visibility log to know if tab is backgrounded
+    document.addEventListener('visibilitychange', () => {
+      console.debug('[page] visibility', document.visibilityState);
+    });
   </script>
 </body>
 </html>

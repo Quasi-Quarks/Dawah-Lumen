@@ -1,8 +1,9 @@
-// firebase-messaging-sw.js (must be served at /Dawah-Lumen/firebase-messaging-sw.js)
+// firebase-messaging-sw.js (must be at /Dawah-Lumen/firebase-messaging-sw.js)
 importScripts('https://www.gstatic.com/firebasejs/12.3.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/12.3.0/firebase-messaging-compat.js');
 
-// Use the same config (Analytics not needed here)
+console.log('[sw] loading...');
+
 firebase.initializeApp({
   apiKey: "AIzaSyDOZU1AJi7ONWlKYgiIJXWoj7X8VAoZ9rM",
   authDomain: "dawah-lumen-v1.firebaseapp.com",
@@ -13,14 +14,31 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
+console.log('[sw] messaging initialized');
 
-// Background notifications (tab closed)
+// Called when a message arrives and the page is in the background
 messaging.onBackgroundMessage((payload) => {
+  console.log('[sw] onBackgroundMessage', payload);
   const title = payload.notification?.title || 'New message';
   const options = {
     body: payload.notification?.body || '',
-    // For a project site, prefix with the repo folder:
-    icon: '/Dawah-Lumen/favicon.ico'
+    icon: '/Dawah-Lumen/favicon.ico', // ensure this exists or replace with a valid icon
+    data: { url: (payload.fcmOptions && payload.fcmOptions.link) || 'https://quasi-quarks.github.io/Dawah-Lumen/' }
   };
   self.registration.showNotification(title, options);
+});
+
+// Make clicks open/focus the chat
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification?.data?.url || 'https://quasi-quarks.github.io/Dawah-Lumen/';
+  event.waitUntil((async () => {
+    const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of allClients) {
+      if (client.url.includes('/Dawah-Lumen/') && 'focus' in client) {
+        return client.focus();
+      }
+    }
+    return clients.openWindow(url);
+  })());
 });

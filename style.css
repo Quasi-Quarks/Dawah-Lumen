@@ -141,10 +141,10 @@ h1 {
 
 
 #body {
-  /* margin: 0; */
-  /* padding: 0; */
+  margin: 0;
+  padding: 0;
   height: 100vh;
-  /* display: flex; */
+  display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
@@ -154,6 +154,11 @@ h1 {
   background-size: 400% 400%, cover;
   animation: animateBackground 15s ease infinite;
   background-attachment: fixed;
+  justify-content: center;
+  width: 100%;
+  /* min-width: 100%; */
+  /* max-width: 100%; */
+  justify-content: flex-start;
 }
 
 @keyframes animateBackground {
@@ -170,9 +175,11 @@ h1 {
 
 
 form#form {
-    position: fixed;
-    bottom: 20px;
+    /* position: fixed; */
+    /* bottom: 20px; */
     display: flex;
+    width: 100%;
+    max-width: 640px;
 }
 
 div#debugform {
@@ -182,4 +189,57 @@ div#debugform {
 .margin {
     height: 40px;
     margin-top: 52px;
+    height: 100px;
+    width: 100%;
+    height: 390px;
+    width: 535px;
+    padding: 42px;
+}
+
+.formsend {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: fixed;
+    bottom: 45px;
+}
+
+
+ .msg {
+    display:flex;
+    align-items: flex-start;
+    /* gap: 0.6rem; */
+    padding: 1.3rem .8rem;
+    border: 18px solid #ddd;
+    border-radius:.6rem;
+    border: 2.4px solid;
+    /* border-top-color: rgb(251 77 117);
+    border-right-color: #1cdd1c;
+    border-bottom-color: #2ca0e3;
+    border-left-color: #fff700; */
+    }
+
+@media only screen and (orientation: portrait) {
+  .msg {
+    display: flex;
+    align-items: flex-start;
+    /* gap: 0.6rem; */
+    padding: 1.3rem .8rem;
+    border: 18px solid #ddd;
+    border-radius: .6rem;
+    border: 2.4px solid;
+    max-width: 83vw;
+}
+
+form#form {
+    /* position: fixed; */
+    /* bottom: 20px; */
+    display: flex;
+    max-width: 70%;
+}
+}
+
+input#chat {
+    color: black;
 }

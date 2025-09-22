@@ -32,10 +32,10 @@
     .menu.is-open{opacity:1;pointer-events:auto}
 
     .menu__card{width:min(92vw,480px);max-height:80vh;overflow:auto;background:#0e2230;border:1px solid #2a9df4;border-radius:12px;padding:14px;color:#fff}
-    .menu__row{display:flex;gap:.5rem;align-items:center;margin:10px 0}
-    .menu__row input{flex:1 1 auto;min-width:0;padding:.55rem .6rem;border-radius:.5rem;border:none;outline:none}
-    .menu__actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.25rem}
-    .menu__btn{appearance:none;border:1px solid #2a9df4;background:#133147;color:#fff;padding:.5rem .75rem;border-radius:.5rem}
+    .menu__row{display:flex;gap:.5rem;align-items:center;margin:10px 0;justify-content: center;}
+    .menu__row input{flex:1 1 auto;min-width:0;padding:.55rem .6rem;border-radius:.5rem;border:none;outline:none;/* max-width: 213px; */
+    .menu__actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.25rem;flex-direction: column;}
+    .menu__btn{appearance:none;border:1px solid #2a9df4;background:#133147;color:#fff;/* padding:.5rem .75rem; */border-radius:.5rem}
     .menu__btn--danger{border-color:#b64b4b;background:#4a1f1f}
     .menu__close{margin-left:auto}
     #debugBox{display:none;max-height:30vh;overflow:auto;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:.5rem;padding:.6rem;font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
@@ -44,7 +44,7 @@
   </style>
 </head>
 <body id="body">
-  <h1>Dawah Luminance 💡 PWA null update 2</h1>
+  <h1>Dawah Luminance 💡</h1>
   <div class="hint">One room. Text only.</div>
 
   <div class="topbar">
@@ -52,7 +52,7 @@
       <img id="avatar" class="avatar" alt="avatar" src="">
       <span id="badgeName"></span>
     </div>
-    <button id="menuOpen" class="menu-btn" type="button">☰ Menu</button>
+    <button id="menuOpen" class="menu-btn" type="button">☰</button>
   </div>
 
   <div id="messages">Loading…</div>
@@ -70,7 +70,7 @@
     <div class="menu__card" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
       <div class="menu__row" style="justify-content:space-between;">
         <strong id="menuTitle">Menu</strong>
-        <button id="menuClose" class="menu__btn menu__close" type="button">Close ✕</button>
+        <button id="menuClose" class="menu__btn menu__close" type="button">✕</button>
       </div>
 
       <p style="margin:.25rem 0 .6rem;opacity:.9">Add to Home Screen and allow push notifications.</p>
@@ -80,24 +80,24 @@
       <div class="menu__row">
         <input id="loginUser" value="Guest" placeholder='Username e.g. "Guest"'>
         <input id="loginCode" value="12345" placeholder='Code e.g. "12345"'>
-        <button id="loginBtn" class="menu__btn" type="button">Login</button>
+        <button id="loginBtn" class="menu__btn" type="button" style="width: max-content;">Login</button>
       </div>
 
       <!-- Notifications -->
       <div><strong>Notifications</strong></div>
       <div class="menu__actions">
-        <button id="enablePush" class="menu__btn" type="button">Enable notifications</button>
-        <button id="disableSW" class="menu__btn menu__btn--danger" type="button" title="Safe mode: unregister SW">Disable SW (safe mode)</button>
-        <button id="enableSW" class="menu__btn" type="button" title="Leave safe mode">Leave safe mode</button>
+        <button id="enablePush" class="menu__btn" type="button" style="width: max-content;">Notifications</button>
+        <button id="disableSW" class="menu__btn menu__btn--danger" type="button" title="Safe mode: unregister SW" style="opacity: 0;">Disable SW (safe mode)</button>
+        <button id="enableSW" class="menu__btn" type="button" title="Leave safe mode" style="opacity: 0;">Leave safe mode</button>
       </div>
       <div id="permStatus" class="tiny" style="margin-top:.25rem;"></div>
 
       <!-- Debug -->
-      <div class="menu__row" style="margin-top:.5rem;">
+      <div class="menu__row" style="margin-top:.5rem; opacity: 0;">
         <input id="debugToggle" type="checkbox">
         <label for="debugToggle">Show debug box</label>
       </div>
-      <div id="debugBox" aria-live="polite"></div>
+      <div id="debugBox" aria-live="polite" style="opacity: 0;"></div>
 
       <!-- Warnings -->
       <div id="warn" class="warn"></div>

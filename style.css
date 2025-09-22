@@ -25,7 +25,7 @@
 
 *,
 *::before,
-*::after { box-sizing: border-box; }
+*::after {box-sizing: border-box;/* border: 2px solid blue; */}
 
 html, body { height: 100%; background: #000; }
 
@@ -89,6 +89,7 @@ h1{
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;       /* iOS momentum */
   overscroll-behavior: contain;
+  justify-content: flex-start;
 }
 
 .msg{
@@ -111,6 +112,7 @@ h1{
      backdrop-filter: saturate(120%) blur(2px);
      -webkit-backdrop-filter: saturate(120%) blur(2px);
   */
+  max-width: 200px;
 }
 
 .msg .avatar{
@@ -163,13 +165,13 @@ form#form{
 button{
   position: relative;               /* for hit-area */
   cursor: pointer;
-  background: none;
+  background: #5b5bab;
   border: none;
-  width: var(--send-btn);
-  height: var(--send-btn);
+  /* width: var(--send-btn); */
+  /* height: var(--send-btn); */
   min-width: var(--send-btn);
   min-height: var(--send-btn);
-  background-image: url('send.png');
+  /* background-image: url('send.png'); */
   background-size: 100% 100%;
   background-repeat: no-repeat;
   filter: drop-shadow(0 2px 8px rgba(0,0,0,.35));
@@ -189,6 +191,7 @@ button::after{
   gap:.5rem;
   margin:.5rem 0 1rem;
   color:#cfcfcf;
+  opacity: 0;
 }
 .userBadge .avatar{ width: 28px; height: 28px; border: 0; }
 
@@ -207,10 +210,11 @@ button::after{
 /* ---------- Layout tweaks ---------- */
 @media (orientation:landscape){
   #messages { padding-bottom: clamp(72px, 10vh, 110px); }
+  .msg{max-width: 200px;margin-inline: auto;width: 50vw;min-width: 34vw;}
 }
 
 @media (orientation:portrait){
-  .msg{ max-width: 94vw; margin-inline: auto; }
+  .msg{max-width: max-content;margin-inline: auto;width: 87vw;min-width: 86vw;}
 }
 
 /* ---------- Light mode tweaks ---------- */
@@ -226,4 +230,26 @@ button::after{
 /* ---------- Legacy iOS safe-area fallback ---------- */
 @supports (padding: max(0px)) {
   .formsend { padding-bottom: max(8px, constant(safe-area-inset-bottom)); }
+}
+
+
+button#sendBtn {
+    background: none;
+    background-image: url(send.png);
+    background-size: 100% 100%;
+    border-radius: 100%;
+    padding: 17px;
+    max-height: 2px;
+}
+
+button#sendBtn:active {
+    background-color: #b717175e;
+}
+
+button#sendBtn:focus {
+    background-color: blue;
+}
+
+button#sendBtn:hover {
+    /* background-color: green; */
 }

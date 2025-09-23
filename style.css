@@ -250,30 +250,4 @@ button#sendBtn:focus {
     background-color: blue;
 }
 
-    .topbar{max-width:760px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:.5rem}
-    .menu-btn{appearance:none;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.2);color:#fff;padding:.45rem .7rem;border-radius:.5rem}
-
-    /* Full-screen overlay without blur */
-    .menu{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);opacity:0;pointer-events:none}
-    .menu.is-open{opacity:1;pointer-events:auto}
-
-    .menu__card{width:min(92vw,480px);max-height:80vh;overflow:auto;background:#0e2230;border:1px solid #2a9df4;border-radius:12px;padding:14px;color:#fff}
-    .menu__row{display:flex;gap:.5rem;align-items:center;margin:10px 0;justify-content:center}
-    .menu__row input{
-      flex:1 1 auto;
-      min-width:0;
-      padding:.55rem .6rem;
-      border-radius:.5rem;
-      border:none;
-      outline:none;
-      /* max-width:213px; */
-    } /* <-- FIX: close the rule */
-
-    .menu__actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.25rem;flex-direction:column}
-    .menu__btn{appearance:none;border:1px solid #2a9df4;background:#133147;color:#fff;border-radius:.5rem}
-    .menu__btn--danger{border-color:#b64b4b;background:#4a1f1f}
-    .menu__close{margin-left:auto}
-    #debugBox{display:none;max-height:30vh;overflow:auto;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:.5rem;padding:.6rem;font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-    #debugBox.show{display:block}
-    .debug-tag{opacity:.7;margin-right:.4rem}
-  </style>
+  

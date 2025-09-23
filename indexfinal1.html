@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>Dawah Luminance</title>
 
-  <!-- PWA / iOS-safe viewport -->
+  <!-- Viewport / iOS-safe layout -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
@@ -13,56 +13,61 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#001d4b">
 
-  <!-- Icons & Manifest (GitHub Pages project path) -->
+  <!-- Icons & Web Manifest (GitHub Pages project path) -->
   <link rel="apple-touch-icon" sizes="192x192" href="/Dawah-Lumen/icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/Dawah-Lumen/icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="/Dawah-Lumen/icons/icon-512.png">
   <link rel="manifest" href="/Dawah-Lumen/manifest.webmanifest">
 
-  <!-- Styles -->
+  <!-- Your chat styles -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- Minimal, safe menu styles (no heavy filters) -->
+
 </head>
 <body id="body">
+  
+  
+  <h1>Dawah Luminance 💡 v36</h1>
+  <div class="hint">One room. Text only.</div>
 
-  <div class="appbar">
-    <h1>Dawah Luminance 💡 v37</h1>
-      <!-- Top controls -->
-    <div class="topbar" role="navigation" aria-label="Main controls">
-      <button id="menuOpen" class="menu-btn" type="button" aria-label="Open menu">☰</button>
-      <div class="userBadge" id="userBadge" hidden>
-        <img id="avatar" class="avatar" alt="avatar" src="">
-        <p id="badgeName"></p>
-      </div>
+
+<div id="top_section">
+  <div id="profile_view" aria-label="Profiles"></div>
+  <div class="topbar" role="navigation" aria-label="Main controls">
+    <button id="menuOpen" class="menu-btn" type="button" aria-label="Open menu">☰</button>
+    <div class="userBadge" id="userBadge" hidden>
+      <img id="avatar" class="avatar" alt="avatar" src="">
+      <p id="badgeName"></p>
     </div>
-</div>
-
-
-
-  <div id="top_section">
-    <!-- Quick profiles row -->
-    <div id="profile_view" aria-label="Profiles"></div>
-
-
+    
   </div>
+</div>
+  
 
-  <!-- Messages -->
   <main>
-    <div id="messages" aria-live="polite"></div>
+    <div id="messages" aria-live="polite">Loading…</div>
+    <div id="buffer" style="margin-top:32px;opacity:0;">Loading</div>
   </main>
 
-  <!-- Composer (fixed bottom) -->
-  <div class="formsend" id="composer">
+
+  <div id="FormContainer">
+  <div class="formsend">
     <form id="form" class="row" autocomplete="off">
       <input id="chat" type="text" placeholder="Messaging disabled" maxlength="500" disabled aria-label="Type message">
       <button id="sendBtn" type="submit" disabled aria-label="Send"></button>
     </form>
+  </div>
+  <div id="Formbuffersizecontainer">
+     <h1>Welcome</h1>
+  </div>
   </div>
 
   <!-- Menu overlay -->
   <div id="menu" class="menu" aria-hidden="true">
     <div class="menu__card" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
       <div class="menu__row" style="justify-content:space-between;">
-        <strong id="menuTitle">Menu</strong>
+        <strong id="menuTitle">Dawah Luminance v13</strong>
         <button id="menuClose" class="menu__btn menu__close" type="button" aria-label="Close menu">✕</button>
       </div>
 
@@ -80,8 +85,20 @@
       <div><strong>Notifications</strong></div>
       <div class="menu__actions">
         <button id="enablePush" class="menu__btn" type="button" style="width:max-content">Enable notifications</button>
+        <button id="disableSW" class="menu__btn menu__btn--danger" type="button" title="Safe mode: unregister SW" style="opacity:0">Disable SW (safe mode)</button>
+        <button id="enableSW" class="menu__btn" type="button" title="Leave safe mode" style="opacity:0">Leave safe mode</button>
       </div>
       <div id="permStatus" class="tiny" style="margin-top:.25rem;"></div>
+
+      <!-- Debug -->
+      <div class="menu__row" style="margin-top:.5rem;opacity:0">
+        <input id="debugToggle" type="checkbox">
+        <label for="debugToggle">Show debug box</label>
+      </div>
+      <div id="debugBox" aria-live="polite" style="opacity:0"></div>
+
+      <!-- Warnings -->
+      <div id="warn" class="warn" aria-live="assertive"></div>
     </div>
   </div>
 
@@ -109,14 +126,14 @@
 
     /* ---------------- Elements ---------------- */
     const messagesEl = document.getElementById('messages');
-    const form       = document.getElementById('form');
-    const chatInput  = document.getElementById('chat');
-    const sendBtn    = document.getElementById('sendBtn');
-    const composer   = document.getElementById('composer');
+    const form      = document.getElementById('form');
+    const chatInput = document.getElementById('chat');
+    const sendBtn   = document.getElementById('sendBtn');
 
     const userBadge = document.getElementById('userBadge');
     const avatarEl  = document.getElementById('avatar');
     const badgeName = document.getElementById('badgeName');
+    const warnEl    = document.getElementById('warn');
 
     // Menu
     const menuEl     = document.getElementById('menu');
@@ -126,11 +143,23 @@
     const loginCode  = document.getElementById('loginCode');
     const loginBtn   = document.getElementById('loginBtn');
 
-    // Push
+    // Push / debug
     const enablePushBtn = document.getElementById('enablePush');
+    const disableSWBtn  = document.getElementById('disableSW');
+    const enableSWBtn   = document.getElementById('enableSW');
     const permStatus    = document.getElementById('permStatus');
-
+    const debugToggle   = document.getElementById('debugToggle');
+    const debugBox      = document.getElementById('debugBox');
     const profileview   = document.getElementById('profile_view');
+
+    // Autofill from URL params
+    const params = new URLSearchParams(location.search);
+    const refUser = params.get("refusrname");
+    const refPass = params.get("refpassword");
+    if (refUser && refPass) {
+      loginUser.value = refUser;
+      loginCode.value = refPass;
+    }
 
     /* ---------------- Profiles ---------------- */
     const profiles_users = [
@@ -175,17 +204,29 @@
         <div class="profileimg">
           <img src="./images/${img}" alt="${name}">
         </div>
-        <div class="username_container"><p>${name}</p></div>
+        <div class="username_container">
+          <p>${name}</p>
+        </div>
       </div>
     `).join("");
 
     const avatarByName = new Map(profiles_users.map(([n, img]) => [n, img]));
 
-    /* ---------------- URL autofill (optional) ---------------- */
-    const params = new URLSearchParams(location.search);
-    const refUser = params.get("refusrname");
-    const refPass = params.get("refpassword");
-    if (refUser && refPass) { loginUser.value = refUser; loginCode.value = refPass; }
+    /* ---------------- Logger ---------------- */
+    function log(line, tag='log'){
+      const stamp = new Date().toLocaleTimeString();
+      if (debugBox){
+        const el = document.createElement('div');
+        el.innerHTML = `<span class="debug-tag">[${stamp}] ${tag.toUpperCase()}:</span> ${line}`;
+        debugBox.appendChild(el);
+        debugBox.scrollTop = debugBox.scrollHeight;
+      }
+      const fn = (tag === 'error') ? 'error' : (tag === 'warn' ? 'warn' : 'log');
+      console[fn](`[${tag}]`, line);
+    }
+    debugToggle && debugToggle.addEventListener('change', () => {
+      debugBox.classList.toggle('show', debugToggle.checked);
+    });
 
     /* ---------------- Menu show/hide ---------------- */
     function openMenu(){ menuEl.classList.add('is-open'); menuEl.setAttribute('aria-hidden','false'); }
@@ -220,18 +261,18 @@
       avatarEl.src = `./images/${u.img}`;
       avatarEl.alt = u.name;
       sessionStorage.setItem('dl_user', JSON.stringify(u));
+      log(`Logged in as ${u.name}`, 'info');
     }
 
     loginBtn.addEventListener('click', () => {
       const name = (loginUser.value || '').trim();
       const code = (loginCode.value || '').trim();
       const match = profiles_users.find(([n,_img,c]) => n === name && c === code);
-      if (!match){ alert('Invalid username or code.'); return; }
+      if (!match){ warnEl.textContent = 'Invalid username or code.'; log('Invalid login', 'warn'); return; }
       const [n, img, c] = match;
+      warnEl.textContent = '';
       applyUser({ name:n, img, code:c });
       closeMenu();
-      // focus the input right away
-      setTimeout(() => chatInput.focus(), 50);
     });
 
     // Restore if present
@@ -243,50 +284,6 @@
         if (ok) applyUser(u);
       }
     }catch{}
-
-    /* ---------------- Feed layout helpers ---------------- */
-    const PLACEHOLDER_MSGS = 2; // change this if you want more/less buffer cards
-
-    function renderPlaceholders(n=0){
-      // remove old placeholders
-      messagesEl.querySelectorAll('.msg.placeholder').forEach(el => el.remove());
-      if (!n) return;
-      const frag = document.createDocumentFragment();
-      for (let i=0;i<n;i++){
-        const ph = document.createElement('div');
-        ph.className = 'msg placeholder';
-        ph.setAttribute('aria-hidden','true');
-        ph.innerHTML = `
-          <img class="avatar" src="./images/default-avatar.png" alt="">
-          <div class="bubble">
-            <div class="name">&nbsp;</div>
-            <div>&nbsp;</div>
-          </div>`;
-        frag.appendChild(ph);
-      }
-      messagesEl.appendChild(frag);
-    }
-
-    function syncFeedPadding(){
-      const h = composer.offsetHeight || 0;
-      messagesEl.style.paddingBottom = (h + 20) + 'px'; // 20px margin below as requested
-    }
-
-    function scrollToBottom(smooth=false){
-      requestAnimationFrame(() => {
-        messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
-      });
-    }
-
-    // keep things aligned on viewport changes (iOS keyboard etc.)
-    syncFeedPadding();
-    window.addEventListener('resize', syncFeedPadding);
-    if (window.visualViewport){
-      visualViewport.addEventListener('resize', syncFeedPadding);
-      visualViewport.addEventListener('scroll',  syncFeedPadding);
-    }
-    chatInput.addEventListener('focus', syncFeedPadding);
-    chatInput.addEventListener('blur',  syncFeedPadding);
 
     /* ---------------- Firestore (chat) ---------------- */
     const messagesRef = collection(db, 'messages');
@@ -309,9 +306,7 @@
         row.append(av, bubble);
         messagesEl.appendChild(row);
       });
-      renderPlaceholders(PLACEHOLDER_MSGS);
-      syncFeedPadding();
-      scrollToBottom();
+      requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; });
     });
 
     form.addEventListener('submit', async (e) => {
@@ -322,62 +317,83 @@
       await addDoc(messagesRef, { username: currentUser.name, chat, createdAt: serverTimestamp() });
       chatInput.value = '';
       chatInput.focus();
-      renderPlaceholders(PLACEHOLDER_MSGS);
-      syncFeedPadding();
-      scrollToBottom(true);
+      requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; });
     });
 
-    /* ---------------- Push (manual click) ---------------- */
+    chatInput.addEventListener('focus', () => requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; }));
+    chatInput.addEventListener('blur',  ()  => requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; }));
+
+    /* ---------------- Web Push with Safe Mode ---------------- */
     const SW_PATH   = '/Dawah-Lumen/firebase-messaging-sw.js?v=3';
     const VAPID_KEY = 'BNUEVOAAfOuD3NrU9PgnZMWXL42hZqsrSCJqMZUNJtC2cx840YvnSdEFzJEL58-J6p02IHaj3eOe6y-bSCr48XY';
 
-    enablePushBtn.addEventListener('click', async () => {
+    // Safe mode: disable SW/FCM to rule out caching issues
+    const qs = new URLSearchParams(location.search);
+    const SAFE_MODE = qs.get('nosw') === '1' || localStorage.getItem('dl_safe_mode') === '1';
+    log('safe_mode: ' + SAFE_MODE, 'info');
+    if (SAFE_MODE) permStatus.textContent = 'Safe mode: Service Worker disabled.';
+
+    disableSWBtn.addEventListener('click', async () => {
+      localStorage.setItem('dl_safe_mode', '1');
+      if ('serviceWorker' in navigator){
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const r of regs) await r.unregister();
+      }
+      alert('Safe mode on. Reloading without Service Worker.');
+      location.replace(location.pathname + '?nosw=1');
+    });
+
+    enableSWBtn.addEventListener('click', async () => {
+      localStorage.removeItem('dl_safe_mode');
+      const url = new URL(location.href);
+      url.searchParams.delete('nosw');
+      alert('Leaving safe mode. Reloading…');
+      location.replace(url.toString());
+    });
+
+    async function enablePushFlow(){
       try{
+        if (SAFE_MODE){ alert('Safe mode is on. Leave safe mode first.'); return; }
+
         const supported = await isSupported();
-        if (!supported){ permStatus.textContent = 'Push not supported in this browser.'; return; }
-        if (!('serviceWorker' in navigator)){ permStatus.textContent = 'No Service Worker support.'; return; }
+        if (!supported){ permStatus.textContent = 'Push not supported in this browser.'; log('Push not supported','warn'); return; }
+        if (!('serviceWorker' in navigator)){ permStatus.textContent = 'Service workers not supported.'; log('No SW','warn'); return; }
 
         const reg = await navigator.serviceWorker.register(SW_PATH);
+        log('Service worker registered','info');
 
         let permission = Notification.permission;
         if (permission !== 'granted') permission = await Notification.requestPermission();
         permStatus.textContent = `Permission: ${permission}`;
-        if (permission !== 'granted') return;
+        if (permission !== 'granted'){ log('Permission not granted','warn'); return; }
 
         const messaging = getMessaging(app);
         const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
         if (token){
           await addDoc(collection(db, 'tokens'), { token, createdAt: serverTimestamp() });
-          permStatus.textContent = 'Notifications enabled.';
+          permStatus.innerHTML = '<span class="ok">Notifications enabled.</span>';
+          log('Token saved','info');
         }else{
           permStatus.textContent = 'Failed to get token.';
+          log('No token','error');
         }
 
         onMessage(messaging, (payload) => {
+          log('Foreground message','info');
           if (Notification.permission === 'granted'){
             new Notification(payload?.notification?.title || 'New message', { body: payload?.notification?.body || '' });
           }
         });
       }catch(err){
         console.error(err);
-        permStatus.textContent = 'Error enabling notifications.';
+        permStatus.textContent = 'Error enabling notifications. See console.';
+        log('Enable push error: ' + (err?.message || err), 'error');
       }
-    });
+    }
+    enablePushBtn.addEventListener('click', enablePushFlow);
 
-    /* ---------------- Profiles tap-to-fill (optional) ---------------- */
-    // If you want tapping a profile to prefill login:
-    profileview.addEventListener('click', (e) => {
-      const card = e.target.closest('.profilecolumn');
-      if (!card) return;
-      const name = card.querySelector('.username_container p')?.textContent?.trim();
-      const found = profiles_users.find(([n]) => n === name);
-      if (found){
-        loginUser.value = found[0];
-        loginCode.value = found[2];
-        openMenu();
-      }
-    });
-
+    // small visibility breadcrumb
+    document.addEventListener('visibilitychange', () => log('visibility: ' + document.visibilityState, 'info'));
   </script>
 </body>
 </html>

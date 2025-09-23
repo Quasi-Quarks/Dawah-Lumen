@@ -24,7 +24,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-*,*::before,*::after{box-sizing: border-box;border: 2px solid blue;}
+*,*::before,*::after{box-sizing: border-box;/* border: 2px solid blue; */}
 
 html, body{/* height:100%; */background:#000;}
 
@@ -401,7 +401,7 @@ div#top_section {
     max-height: 134px;
 }
 
-/* v30 */
+/* v31 */
 
 span#badgeName {
     text-decoration: underline;

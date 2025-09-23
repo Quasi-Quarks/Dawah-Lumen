@@ -78,7 +78,7 @@
   <div id="menu" class="menu" aria-hidden="true">
     <div class="menu__card" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
       <div class="menu__row" style="justify-content:space-between;">
-        <strong id="menuTitle">Dawah Luminance v11</strong>
+        <strong id="menuTitle">Dawah Luminance v12</strong>
         <button id="menuClose" class="menu__btn menu__close" type="button" aria-label="Close menu">✕</button>
       </div>
 
@@ -114,6 +114,17 @@
   </div>
 
   <script type="module">
+
+    // --- Autofill from URL params ---
+const params = new URLSearchParams(location.search);
+const refUser = params.get("refusrname");
+const refPass = params.get("refpassword");
+
+if (refUser && refPass) {
+  loginUser.value = refUser;
+  loginCode.value = refPass;
+}
+
     /* ---------------- Firebase (CDN) ---------------- */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
     import {

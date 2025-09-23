@@ -24,7 +24,9 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-*,*::before,*::after{box-sizing: border-box;/* border: 2px solid blue; */}
+*,*::before,*::after{box-sizing: border-box;
+  /* border: 2px solid blue; */
+}
 
 html, body{/* height:100%; */background:#000;}
 
@@ -392,8 +394,8 @@ img {
 }
 
 .profilecolumn {
-    min-width: 91px;
-    max-width: 107px;
+    min-width: 80px;
+    max-width: 97px;
 }
 
 div#top_section {
@@ -401,7 +403,7 @@ div#top_section {
     max-height: 134px;
 }
 
-/* v31 */
+/* v34 */
 
 span#badgeName {
     text-decoration: underline;

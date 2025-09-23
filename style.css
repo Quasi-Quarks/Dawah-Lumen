@@ -239,6 +239,9 @@ button#sendBtn:focus{ outline:2px solid #3b82f6; outline-offset:2px; }
   padding-left: 12px;
   margin: 0px;
   padding: 0px;
+  margin-left: 5px;
+  border-left: 2px solid gray;
+  padding-left: 3px;
 }
 .menu-btn{
   appearance:none;
@@ -361,7 +364,7 @@ div#profile_view {
     position: sticky;
     overflow: hidden;
     overflow-x: scroll;
-    max-height: 103px;
+    max-height: 98px;
 }
 
 img {
@@ -396,6 +399,10 @@ img {
 .profilecolumn {
     min-width: 80px;
     max-width: 97px;
+    justify-content: space-around;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
 }
 
 div#top_section {
@@ -403,7 +410,7 @@ div#top_section {
     max-height: 134px;
 }
 
-/* v34 */
+/* v35 */
 
 span#badgeName {
     text-decoration: underline;

@@ -24,7 +24,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-*,*::before,*::after{box-sizing: border-box;/* border: 2px solid blue; */}
+*,*::before,*::after{box-sizing: border-box;border: 2px solid blue;}
 
 html, body{/* height:100%; */background:#000;}
 
@@ -229,6 +229,8 @@ button#sendBtn:focus{ outline:2px solid #3b82f6; outline-offset:2px; }
   /* gap:.5rem; */
   /* z-index:10; */
   height: 46px;
+  flex-direction: column;
+  padding-left: 51px;
 }
 .menu-btn{
   appearance:none;
@@ -239,7 +241,12 @@ button#sendBtn:focus{ outline:2px solid #3b82f6; outline-offset:2px; }
   border-radius:.5rem;
   font-size: xx-large;
   margin: 0px;
-  padding: 0px;
+  /* padding: 0px; */
+  max-width: 46px;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
 }
 
 .menu{
@@ -338,10 +345,10 @@ button#sendBtn:focus{ outline:2px solid #3b82f6; outline-offset:2px; }
 
 
 div#profile_view {
-    width: 589px;
+    width: 346px;
     height: 132px;
     display: flex;
-    margin: 11px 0px 14px 0px;
+    margin: 0px 0px 0px 0px;
     position: sticky;
     overflow: hidden;
     overflow-x: scroll;
@@ -383,6 +390,11 @@ img {
 
 div#top_section {
     display: flex;
+    max-height: 134px;
 }
 
 /* v19 */
+
+span#badgeName {
+    text-decoration: underline;
+}

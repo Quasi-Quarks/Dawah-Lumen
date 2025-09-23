@@ -24,7 +24,8 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-*,*::before,*::after{box-sizing: border-box;
+*,*::before,*::after{
+  box-sizing: border-box;
   /* border: 2px solid blue; */
 }
 
@@ -132,12 +133,12 @@ h1{
    Composer (fixed bottom bar)
 ========================================================= */
 .formsend{
-  position:fixed;
-  left:50%;
-  transform:translateX(-50%) translateZ(0); /* own layer */
-  bottom:0;
+  /* position:fixed; */
+  /* left:50%; */
+  /* transform:translateX(-50%) translateZ(0); */ /* own layer */
+  /* bottom:0; */
   width:min(92vw, 900px);
-  padding:8px 10px calc(8px + var(--page-pad-b));
+  /* padding:8px 10px calc(8px + var(--page-pad-b)); */
   background:linear-gradient(180deg, transparent 0%, rgba(0,0,0,.18) 40%);
 }
 
@@ -352,19 +353,19 @@ button#sendBtn:focus{ outline:2px solid #3b82f6; outline-offset:2px; }
 
 /* Legacy iOS safe-area fallback */
 @supports (padding: max(0px)){
-  .formsend{ padding-bottom:max(8px, constant(safe-area-inset-bottom)); }
+  .formsend{}
 }
 
 
 div#profile_view {
     width: 199px;
-    height: 132px;
+    height: 129px;
     display: flex;
     margin: 0px 0px 0px 0px;
     position: sticky;
     overflow: hidden;
     overflow-x: scroll;
-    max-height: 98px;
+    max-height: 113px;
 }
 
 img {
@@ -384,8 +385,8 @@ img {
 }
 
 .profileimg img {
-    height: 46px;
-    width: 46px;
+    height: 30px;
+    width: 30px;
     border-radius: 100%;
 }
 
@@ -397,9 +398,9 @@ img {
 }
 
 .profilecolumn {
-    min-width: 80px;
-    max-width: 97px;
-    justify-content: space-around;
+    min-width: 78px;
+    max-width: 93px;
+    justify-content: space-evenly;
     align-items: center;
     display: flex;
     flex-direction: column;
@@ -410,7 +411,7 @@ div#top_section {
     max-height: 134px;
 }
 
-/* v35 */
+/* v36 */
 
 span#badgeName {
     text-decoration: underline;
@@ -422,4 +423,15 @@ p#badgeName {
     font-size: 11px;
     text-align: left;
     text-decoration: underline;
+}
+
+div#Formbuffersizecontainer h1 {
+    opacity: 0;
+    font-size: 0.7px;
+}
+
+div#FormContainer {
+    width: 99.2%;
+    position: fixed;
+    bottom: 0;
 }

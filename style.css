@@ -108,8 +108,8 @@ h1{
   background:var(--glass-bg);
   /* backdrop-filter:saturate(120%) blur(2px);
      -webkit-backdrop-filter:saturate(120%) blur(2px); */
-
   width:100%;
+  background-image: linear-gradient(45deg, #0a1557cc, #0a1a5714);
 }
 
 .msg .avatar{
@@ -200,8 +200,10 @@ button#sendBtn:focus{ outline:2px solid #3b82f6; outline-offset:2px; }
   gap:.5rem;
   margin:.5rem 0 1rem;
   color:#cfcfcf;
+  display: flex;
+  flex-direction: column;
 }
-.userBadge .avatar{ width:28px; height:28px; border:0; }
+.userBadge .avatar{width: 33px;height: 32px;border:0;border-radius: 100%;padding: 0px;}
 
 .banner{
   display:none;
@@ -219,13 +221,14 @@ button#sendBtn:focus{ outline:2px solid #3b82f6; outline-offset:2px; }
    Menu overlay (inline styles kept minimal)
 ========================================================= */
 .topbar{
-  position:fixed;
-  top:8px;
-  right:8px;
+  /* position:fixed; */
+  /* top: 11%; */
+  /* right:8px; */
   display:flex;
-  align-items:center;
-  gap:.5rem;
-  z-index:10;
+  /* align-items:center; */
+  /* gap:.5rem; */
+  /* z-index:10; */
+  height: 46px;
 }
 .menu-btn{
   appearance:none;
@@ -234,6 +237,9 @@ button#sendBtn:focus{ outline:2px solid #3b82f6; outline-offset:2px; }
   color:#fff;
   padding:.45rem .7rem;
   border-radius:.5rem;
+  font-size: xx-large;
+  margin: 0px;
+  padding: 0px;
 }
 
 .menu{
@@ -332,11 +338,13 @@ button#sendBtn:focus{ outline:2px solid #3b82f6; outline-offset:2px; }
 
 
 div#profile_view {
-    width: 750px;
-    height: 90px;
+    width: 589px;
+    height: 132px;
     display: flex;
     margin: 11px 0px 14px 0px;
     position: sticky;
+    overflow: hidden;
+    overflow-x: scroll;
 }
 
 img {
@@ -371,4 +379,8 @@ img {
 .profilecolumn {
     min-width: 91px;
     max-width: 107px;
+}
+
+div#top_section {
+    display: flex;
 }

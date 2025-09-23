@@ -23,40 +23,17 @@
   <link rel="stylesheet" href="style.css">
 
   <!-- Minimal, safe menu styles (no heavy filters) -->
-  <style>
-    .topbar{max-width:760px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:.5rem}
-    .menu-btn{appearance:none;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.2);color:#fff;padding:.45rem .7rem;border-radius:.5rem}
 
-    /* Full-screen overlay without blur */
-    .menu{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);opacity:0;pointer-events:none}
-    .menu.is-open{opacity:1;pointer-events:auto}
-
-    .menu__card{width:min(92vw,480px);max-height:80vh;overflow:auto;background:#0e2230;border:1px solid #2a9df4;border-radius:12px;padding:14px;color:#fff}
-    .menu__row{display:flex;gap:.5rem;align-items:center;margin:10px 0;justify-content:center}
-    .menu__row input{
-      flex:1 1 auto;
-      min-width:0;
-      padding:.55rem .6rem;
-      border-radius:.5rem;
-      border:none;
-      outline:none;
-      /* max-width:213px; */
-    } /* <-- FIX: close the rule */
-
-    .menu__actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.25rem;flex-direction:column}
-    .menu__btn{appearance:none;border:1px solid #2a9df4;background:#133147;color:#fff;border-radius:.5rem}
-    .menu__btn--danger{border-color:#b64b4b;background:#4a1f1f}
-    .menu__close{margin-left:auto}
-    #debugBox{display:none;max-height:30vh;overflow:auto;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:.5rem;padding:.6rem;font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-    #debugBox.show{display:block}
-    .debug-tag{opacity:.7;margin-right:.4rem}
-  </style>
 </head>
 <body id="body">
-  <h1>Dawah Luminance 💡</h1>
+  
+  
+  <h1>Dawah Luminance 💡 v16</h1>
   <div class="hint">One room. Text only.</div>
 
-  <div class="topbar">
+  <div id="profile_view" aria-label="Profiles"></div>
+
+  <div class="topbar" role="navigation" aria-label="Main controls">
     <div class="userBadge" id="userBadge" hidden>
       <img id="avatar" class="avatar" alt="avatar" src="">
       <span id="badgeName"></span>
@@ -64,12 +41,14 @@
     <button id="menuOpen" class="menu-btn" type="button" aria-label="Open menu">☰</button>
   </div>
 
-  <div id="messages">Loading…</div>
-  <div id="buffer" style="margin-top:32px;opacity:0;">Loading</div>
+  <main>
+    <div id="messages" aria-live="polite">Loading…</div>
+    <div id="buffer" style="margin-top:32px;opacity:0;">Loading</div>
+  </main>
 
   <div class="formsend">
-    <form id="form" class="row">
-      <input id="chat" type="text" placeholder="Messaging disabled" maxlength="500" disabled>
+    <form id="form" class="row" autocomplete="off">
+      <input id="chat" type="text" placeholder="Messaging disabled" maxlength="500" disabled aria-label="Type message">
       <button id="sendBtn" type="submit" disabled aria-label="Send"></button>
     </form>
   </div>
@@ -89,13 +68,13 @@
       <div class="menu__row">
         <input id="loginUser" value="Guest" placeholder='Username e.g. "Guest"' autocomplete="off">
         <input id="loginCode" value="12345" placeholder='Code e.g. "12345"' autocomplete="off">
-        <button id="loginBtn" class="menu__btn" type="button" style="width:max-content">Login..</button>
+        <button id="loginBtn" class="menu__btn" type="button" style="width:max-content">Login</button>
       </div>
 
       <!-- Notifications -->
-      <div><strong>Notifications..</strong></div>
+      <div><strong>Notifications</strong></div>
       <div class="menu__actions">
-        <button id="enablePush" class="menu__btn" type="button" style="width:max-content">Notifications</button>
+        <button id="enablePush" class="menu__btn" type="button" style="width:max-content">Enable notifications</button>
         <button id="disableSW" class="menu__btn menu__btn--danger" type="button" title="Safe mode: unregister SW" style="opacity:0">Disable SW (safe mode)</button>
         <button id="enableSW" class="menu__btn" type="button" title="Leave safe mode" style="opacity:0">Leave safe mode</button>
       </div>
@@ -109,14 +88,11 @@
       <div id="debugBox" aria-live="polite" style="opacity:0"></div>
 
       <!-- Warnings -->
-      <div id="warn" class="warn"></div>
+      <div id="warn" class="warn" aria-live="assertive"></div>
     </div>
   </div>
 
   <script type="module">
-
-
-
     /* ---------------- Firebase (CDN) ---------------- */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
     import {
@@ -164,16 +140,16 @@
     const permStatus    = document.getElementById('permStatus');
     const debugToggle   = document.getElementById('debugToggle');
     const debugBox      = document.getElementById('debugBox');
+    const profileview   = document.getElementById('profile_view');
 
-        // --- Autofill from URL params ---
-const params = new URLSearchParams(location.search);
-const refUser = params.get("refusrname");
-const refPass = params.get("refpassword");
-
-if (refUser && refPass) {
-  loginUser.value = refUser;
-  loginCode.value = refPass;
-}
+    // Autofill from URL params
+    const params = new URLSearchParams(location.search);
+    const refUser = params.get("refusrname");
+    const refPass = params.get("refpassword");
+    if (refUser && refPass) {
+      loginUser.value = refUser;
+      loginCode.value = refPass;
+    }
 
     /* ---------------- Profiles ---------------- */
     const profiles_users = [
@@ -201,11 +177,29 @@ if (refUser && refPass) {
       ["The Orthodox", "theorthodox.PNG", "9205Y"],
       ["Musa⚔️Khan", "musakhan.PNG", "9205Y"],
       ["Libra", "libra.PNG", "9205T"],
-      ["True Knowledge", "tk.jpg", "920TT"],
+      ["True Knowledge", "tk.jpg", "920TT"]
     ];
 
-    // https://quasi-quarks.github.io/Hakeem/?refusrname=Sword+of+Allah&refpassword=1473F
-    // https://quasi-quarks.github.io/Dawah-Lumen/?refusrname=Hakeem&refpassword=1473F
+    const profiles_views = [
+      ["Abu", "abu.PNG", "4829Q"],
+      ["Cowboy", "cowboy.PNG", "5921X"],
+      ["Love", "farah2.PNG", "9031D"],
+      ["Sword of Allah", "swordofallah.jpg", "7832K"],
+      ["Salaam Alaykum", "salaamalaykum.PNG", "9205M"],
+      ["Libra", "libra.PNG", "9205T"]
+    ];
+
+    profileview.innerHTML = profiles_views.map(([name, img]) => `
+      <div class="profilecolumn">
+        <div class="profileimg">
+          <img src="./images/${img}" alt="${name}">
+        </div>
+        <div class="username_container">
+          <p>${name}</p>
+        </div>
+      </div>
+    `).join("");
+
     const avatarByName = new Map(profiles_users.map(([n, img]) => [n, img]));
 
     /* ---------------- Logger ---------------- */
@@ -220,7 +214,7 @@ if (refUser && refPass) {
       const fn = (tag === 'error') ? 'error' : (tag === 'warn' ? 'warn' : 'log');
       console[fn](`[${tag}]`, line);
     }
-    debugToggle.addEventListener('change', () => {
+    debugToggle && debugToggle.addEventListener('change', () => {
       debugBox.classList.toggle('show', debugToggle.checked);
     });
 
@@ -229,7 +223,6 @@ if (refUser && refPass) {
     function closeMenu(){ menuEl.classList.remove('is-open'); menuEl.setAttribute('aria-hidden','true'); }
     menuOpen.addEventListener('click', openMenu);
     menuClose.addEventListener('click', closeMenu);
-    // tap outside to close
     menuEl.addEventListener('click', (e) => { if (e.target === menuEl) closeMenu(); });
 
     /* ---------------- Auth ---------------- */

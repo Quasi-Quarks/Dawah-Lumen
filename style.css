@@ -14,186 +14,194 @@
   --send-btn: 36px;                /* bigger touch target on iOS */
   --input-h: 40px;                 /* taller input for thumbs */
   --headline-size: clamp(1.8rem, 2.8vw + 1.4rem, 2.7rem);
-  --page-pad: max(12px, env(safe-area-inset-left));
+  --page-pad-l: max(12px, env(safe-area-inset-left));
   --page-pad-r: max(12px, env(safe-area-inset-right));
-  --page-pad-b: max(8px, env(safe-area-inset-bottom));
-  --glass-bg: rgba(0,0,0,.14);     /* slightly lighter for contrast */
+  --page-pad-b: max(8px,  env(safe-area-inset-bottom));
+  --glass-bg: rgba(0,0,0,.14);     /* subtle for contrast */
+
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-*,
-*::before,
-*::after {box-sizing: border-box;/* border: 2px solid blue; */}
+*,*::before,*::after{box-sizing: border-box;/* border: 2px solid blue; */}
 
-html, body { height: 100%; background: #000; }
+html, body{/* height:100%; */background:#000;}
 
 body{
   color:#fff;
   margin:0;
   padding:0;
-  min-height: 100vh;
-  min-height: -webkit-fill-available; /* iOS PWA/Safari */
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+  min-height:100vh;
+  min-height:-webkit-fill-available; /* iOS PWA/Safari */
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
 }
 
 /* ---------- App Shell / Background (static) ---------- */
 #body{
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
+  min-height:100vh;
+  min-height:-webkit-fill-available;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  padding-left:var(--page-pad-l);
+  padding-right:var(--page-pad-r);
 
-  /* Static overlay + hero image (no animated gradient, no fixed attach) */
+  /* Static overlay + hero image (no animation, no fixed attach) */
   background:
     linear-gradient(-45deg, rgba(0,31,61,.72), rgba(15,32,39,.72), rgba(44,83,100,.72), rgba(0,31,61,.72)),
     url('background.jpg') no-repeat center / cover;
-
-  padding-left: var(--page-pad);
-  padding-right: var(--page-pad-r);
 }
 
 /* ---------- Header (static neon text) ---------- */
 h1{
-  margin: clamp(18px, 4vh, 48px) 0 clamp(4px, 1vh, 8px);
+  margin:clamp(18px, 4vh, 48px) 0 clamp(4px, 1vh, 8px);
   text-align:center;
   width:100%;
   font-weight:700;
-  font-size: var(--headline-size);
+  font-size:var(--headline-size);
   letter-spacing:2px;
   font-family:'Orbitron', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-
-  /* Static gradient fill (no animation) */
-  background: linear-gradient(90deg,#00e5ff,#ff4081,#76ff03,#ffab00);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background:linear-gradient(90deg,#00e5ff,#ff4081,#76ff03,#ffab00);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
   text-shadow:0 0 12px rgba(0,229,255,.25);
 }
 
-.hint, .tiny, code, #debugform, #warn { display:none; }
+/* Hide little helpers by default */
+.hint, .tiny, code, #debugform, #warn{ display:none; }
 
-/* ---------- Messages Feed ---------- */
+/* =========================================================
+   Messages Feed
+========================================================= */
 #messages{
   display:flex;
   flex-direction:column;
-  gap: var(--gap);
-  width: 100%;
-  max-width: var(--max-feed);
-  margin: 0 auto;
-  padding: 0 8px clamp(80px, 12vh, 120px); /* space for composer */
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;       /* iOS momentum */
-  overscroll-behavior: contain;
-  justify-content: flex-start;
+  gap:var(--gap);
+  width:100%;
+  max-width:var(--max-feed);
+  margin:0 auto;
+  padding:0 8px clamp(80px, 12vh, 120px); /* space for composer */
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;  /* iOS momentum */
+  overscroll-behavior:contain;
 }
 
 .msg{
   display:flex;
-  align-items: flex-start;
-  gap: .6rem;
-  padding: var(--card-pad-y) var(--card-pad-x);
-  border-radius: .8rem;
+  align-items:flex-start;
+  gap:.6rem;
+  padding:var(--card-pad-y) var(--card-pad-x);
+  border-radius:.8rem;
 
-  /* Static neon ring (no rotation) */
-  border: var(--ring-width) solid;
+  /* Static multi-color ring (no rotation) */
+  border:var(--ring-width) solid;
   border-top-color:#ff4081;
   border-right-color:#00e5ff;
   border-bottom-color:#5fff03;
   border-left-color:#ffab00;
 
-  /* Light “glass” look without heavy blur */
-  background: var(--glass-bg);
-  /* If you want a tiny blur, uncomment next two lines (slight cost on iOS):
-     backdrop-filter: saturate(120%) blur(2px);
-     -webkit-backdrop-filter: saturate(120%) blur(2px);
-  */
-  max-width: 200px;
+  /* Subtle “glass” look, no blur (uncomment to add tiny blur) */
+  background:var(--glass-bg);
+  /* backdrop-filter:saturate(120%) blur(2px);
+     -webkit-backdrop-filter:saturate(120%) blur(2px); */
+
+  width:100%;
 }
 
 .msg .avatar{
-  width: var(--avatar);
-  height: var(--avatar);
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid #ddd;
-  margin: 1px 2px 0 2px;
-  flex: 0 0 var(--avatar);
+  width:var(--avatar);
+  height:var(--avatar);
+  border-radius:50%;
+  object-fit:cover;
+  border:1px solid #ddd;
+  margin:1px 2px 0 2px;
+  flex:0 0 var(--avatar);
 }
 
-.msg .bubble{ flex: 1 1 auto; min-width: 0; }
-.msg .name{ font-weight: 650; margin-bottom: .15rem; font-size: clamp(0.98rem, 1.2vw + .75rem, 1.1rem); }
-.msg .bubble > div:last-child { line-height: 1.45; }
+.msg .bubble{ flex:1 1 auto; min-width:0; }
+.msg .name{ font-weight:650; margin-bottom:.15rem; font-size:clamp(.98rem, 1.2vw + .75rem, 1.1rem); }
+.msg .bubble > div:last-child{ line-height:1.45; }
 
-/* ---------- Composer (fixed bottom bar) ---------- */
+/* =========================================================
+   Composer (fixed bottom bar)
+========================================================= */
 .formsend{
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%) translateZ(0); /* promote to own layer */
-  bottom: 0;
-  width: min(92vw, 900px);
-  padding: 8px 10px calc(8px + var(--page-pad-b));
-  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.18) 40%);
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%) translateZ(0); /* own layer */
+  bottom:0;
+  width:min(92vw, 900px);
+  padding:8px 10px calc(8px + var(--page-pad-b));
+  background:linear-gradient(180deg, transparent 0%, rgba(0,0,0,.18) 40%);
 }
 
 form#form{
   display:flex;
   align-items:center;
-  justify-content: space-between;
-  gap: .5rem;
+  justify-content:space-between;
+  gap:.5rem;
 }
 
 #chat{
-  flex: 1 1 auto;
-  min-width: 0;
-  height: var(--input-h);
-  max-height: var(--input-h);
-  padding: .6rem .75rem;
-  color: #111;
-  background: #fff;
-  border: none;
-  border-radius: .65rem;
-  outline: none;
-  font-size: 1rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,.18);
+  flex:1 1 auto;
+  min-width:0;
+  height:var(--input-h);
+  max-height:var(--input-h);
+  padding:.6rem .75rem;
+  color:#111;
+  background:#fff;
+  border:none;
+  border-radius:.65rem;
+  outline:none;
+  font-size:1rem;
+  box-shadow:0 2px 10px rgba(0,0,0,.18);
 }
 
+/* Base button */
 button{
-  position: relative;               /* for hit-area */
-  cursor: pointer;
-  background: #5b5bab;
-  border: none;
-  /* width: var(--send-btn); */
-  /* height: var(--send-btn); */
-  min-width: var(--send-btn);
-  min-height: var(--send-btn);
-  /* background-image: url('send.png'); */
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,.35));
+  position:relative; /* for bigger hit-area */
+  cursor:pointer;
+  background:#5b5bab;
+  border:none;
+  min-width:var(--send-btn);
+  min-height:var(--send-btn);
+  filter:drop-shadow(0 2px 8px rgba(0,0,0,.35));
 }
 
-/* Bigger hit-area on iOS for the send button */
 button::after{
   content:'';
   position:absolute;
-  inset:-6px;
+  inset:-6px; /* larger tap target */
 }
 
-/* ---------- Banners & Badges ---------- */
+/* Send button icon */
+button#sendBtn{
+  background:none;
+  background-image:url('send.png');
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  border-radius:100%;
+  padding:17px;
+}
+
+button#sendBtn:active{ background-color:#b717175e; }
+button#sendBtn:focus{ outline:2px solid #3b82f6; outline-offset:2px; }
+
+/* =========================================================
+   Banners & Badges
+========================================================= */
 .userBadge{
   display:flex;
   align-items:center;
   gap:.5rem;
   margin:.5rem 0 1rem;
   color:#cfcfcf;
-  opacity: 0;
 }
-.userBadge .avatar{ width: 28px; height: 28px; border: 0; }
+.userBadge .avatar{ width:28px; height:28px; border:0; }
 
 .banner{
   display:none;
@@ -202,52 +210,165 @@ button::after{
   padding:.7rem .9rem;
   border-radius:.6rem;
   margin:.9rem 0;
-  max-width: var(--max-feed);
-  width: 100%;
+  max-width:var(--max-feed);
+  width:100%;
 }
 .banner.show{ display:block; }
 
-/* ---------- Layout tweaks ---------- */
+/* =========================================================
+   Menu overlay (inline styles kept minimal)
+========================================================= */
+.topbar{
+  position:fixed;
+  top:8px;
+  right:8px;
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  z-index:10;
+}
+.menu-btn{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.25);
+  background:rgba(0,0,0,.2);
+  color:#fff;
+  padding:.45rem .7rem;
+  border-radius:.5rem;
+}
+
+.menu{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.55);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s ease;
+}
+.menu.is-open{ opacity:1; pointer-events:auto; }
+
+.menu__card{
+  width:min(92vw,480px);
+  max-height:80vh;
+  overflow:auto;
+  background:#0e2230;
+  border:1px solid #2a9df4;
+  border-radius:12px;
+  padding:14px;
+  color:#fff;
+}
+.menu__row{
+  display:flex;
+  gap:.5rem;
+  align-items:center;
+  margin:10px 0;
+  justify-content:center;
+}
+.menu__row input{
+  flex:1 1 auto;
+  min-width:0;
+  padding:.55rem .6rem;
+  border-radius:.5rem;
+  border:none;
+  outline:none;
+}
+.menu__actions{
+  display:flex;
+  gap:.5rem;
+  flex-wrap:wrap;
+  margin-top:.25rem;
+  flex-direction:column;
+}
+.menu__btn{
+  appearance:none;
+  border:1px solid #2a9df4;
+  background:#133147;
+  color:#fff;
+  border-radius:.5rem;
+  padding:.5rem .75rem;
+}
+.menu__btn--danger{ border-color:#b64b4b; background:#4a1f1f; }
+.menu__close{ margin-left:auto; }
+
+#debugBox{
+  display:none;
+  max-height:30vh;
+  overflow:auto;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:.5rem;
+  padding:.6rem;
+  font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+#debugBox.show{ display:block; }
+.debug-tag{ opacity:.7; margin-right:.4rem; }
+
+/* =========================================================
+   Layout tweaks
+========================================================= */
 @media (orientation:landscape){
-  #messages { padding-bottom: clamp(72px, 10vh, 110px); }
-  .msg{max-width: 200px;margin-inline: auto;width: 50vw;min-width: 34vw;}
+  #messages{ padding-bottom: clamp(72px, 10vh, 110px); }
 }
 
 @media (orientation:portrait){
-  .msg{max-width: max-content;margin-inline: auto;width: 87vw;min-width: 86vw;}
+  /* Let feed width control message width; keep margins tight */
+  .msg{ margin-inline:auto; }
 }
 
-/* ---------- Light mode tweaks ---------- */
+/* Light mode tweaks */
 @media (prefers-color-scheme: light){
   #chat{ color:#111; background:#fff; }
 }
 
-/* ---------- Reduced motion (still no animations, just future-proof) ---------- */
-@media (prefers-reduced-motion: reduce) {
-  /* nothing to disable—animations removed by design */
-}
+/* Reduced motion: nothing to disable—no animations used */
 
-/* ---------- Legacy iOS safe-area fallback ---------- */
-@supports (padding: max(0px)) {
-  .formsend { padding-bottom: max(8px, constant(safe-area-inset-bottom)); }
+/* Legacy iOS safe-area fallback */
+@supports (padding: max(0px)){
+  .formsend{ padding-bottom:max(8px, constant(safe-area-inset-bottom)); }
 }
 
 
-button#sendBtn {
-    background: none;
-    background-image: url(send.png);
-    background-size: 100% 100%;
+div#profile_view {
+    width: 750px;
+    height: 90px;
+    display: flex;
+    margin: 11px 0px 14px 0px;
+    position: sticky;
+}
+
+img {
+    /* height: 52px; */
+}
+
+.profileimg {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.username_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profileimg img {
+    height: 52px;
+    width: 52px;
     border-radius: 100%;
-    padding: 17px;
-    max-height: 2px;
 }
 
-button#sendBtn:active {
-    background-color: #b717175e;
+.username_container p {
+    margin: 0px;
+    padding: 0px;
+    width: 83%;
+    text-align: center;
 }
 
-button#sendBtn:focus {
-    background-color: blue;
+.profilecolumn {
+    min-width: 91px;
+    max-width: 107px;
 }
-
-  

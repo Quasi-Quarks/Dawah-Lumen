@@ -332,7 +332,7 @@
       const name = card.getAttribute('data-name') || card.querySelector('.username_container p')?.textContent || '';
       if (!name) return;
       const pre = chatInput.value ? chatInput.value.replace(/\s+$/,'') + ' ' : '';
-      chatInput.value = pre + '@' + name + ' ';
+      chatInput.value = '@' + name + ' ';
       chatInput.focus();
       scrollToBottom(true);
     });

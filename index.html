@@ -24,9 +24,9 @@
 </head>
 <body id="body">
 
+  <!-- App bar -->
   <div class="appbar">
     <h1>Dawah Luminance 💡 v38</h1>
-      <!-- Top controls -->
     <div class="topbar" role="navigation" aria-label="Main controls">
       <button id="menuOpen" class="menu-btn" type="button" aria-label="Open menu">☰</button>
       <div class="userBadge" id="userBadge" hidden>
@@ -34,15 +34,11 @@
         <p id="badgeName"></p>
       </div>
     </div>
-</div>
+  </div>
 
-
-
+  <!-- Profiles row -->
   <div id="top_section">
-    <!-- Quick profiles row -->
     <div id="profile_view" aria-label="Profiles"></div>
-
-
   </div>
 
   <!-- Messages -->
@@ -52,7 +48,7 @@
 
   <!-- Composer (fixed bottom) -->
   <div class="formsend" id="composer">
-    <form id="form" class="row" autocomplete="off">
+    <form id="form" autocomplete="off">
       <input id="chat" type="text" placeholder="Messaging disabled" maxlength="500" disabled aria-label="Type message">
       <button id="sendBtn" type="submit" disabled aria-label="Send"></button>
     </form>
@@ -65,10 +61,8 @@
         <strong id="menuTitle">Menu</strong>
         <button id="menuClose" class="menu__btn menu__close" type="button" aria-label="Close menu">✕</button>
       </div>
-
       <p style="margin:.25rem 0 .6rem;opacity:.9">Add to Home Screen and allow push notifications.</p>
 
-      <!-- Login -->
       <div><strong>Login</strong></div>
       <div class="menu__row">
         <input id="loginUser" value="Guest" placeholder='Username e.g. "Guest"' autocomplete="off">
@@ -76,9 +70,8 @@
         <button id="loginBtn" class="menu__btn" type="button" style="width:max-content">Login</button>
       </div>
 
-      <!-- Notifications -->
       <div><strong>Notifications</strong></div>
-      <div class="menu__actions">
+      <div class="menu__row">
         <button id="enablePush" class="menu__btn" type="button" style="width:max-content">Enable notifications</button>
       </div>
       <div id="permStatus" class="tiny" style="margin-top:.25rem;"></div>
@@ -86,7 +79,7 @@
   </div>
 
   <script type="module">
-    /* ---------------- Firebase (CDN) ---------------- */
+    /* Firebase (CDN) */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
     import {
       getFirestore, collection, addDoc, serverTimestamp,
@@ -107,7 +100,7 @@
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
-    /* ---------------- Elements ---------------- */
+    /* Elements */
     const messagesEl = document.getElementById('messages');
     const form       = document.getElementById('form');
     const chatInput  = document.getElementById('chat');
@@ -118,7 +111,6 @@
     const avatarEl  = document.getElementById('avatar');
     const badgeName = document.getElementById('badgeName');
 
-    // Menu
     const menuEl     = document.getElementById('menu');
     const menuOpen   = document.getElementById('menuOpen');
     const menuClose  = document.getElementById('menuClose');
@@ -126,13 +118,12 @@
     const loginCode  = document.getElementById('loginCode');
     const loginBtn   = document.getElementById('loginBtn');
 
-    // Push
     const enablePushBtn = document.getElementById('enablePush');
     const permStatus    = document.getElementById('permStatus');
 
     const profileview   = document.getElementById('profile_view');
 
-    /* ---------------- Profiles ---------------- */
+    /* Profiles */
     const profiles_users = [
       ["Guest", "guest.PNG", "12345"],
       ["Abu", "abu.PNG", "4829Q"],
@@ -160,7 +151,9 @@
       ["Libra", "libra.PNG", "9205T"],
       ["True Knowledge", "tk.jpg", "920TT"]
     ];
+    const avatarByName = new Map(profiles_users.map(([n, img]) => [n, img]));
 
+    /* Profiles preview (simple, centered by CSS) */
     const profiles_views = [
       ["Abu", "abu.PNG", "4829Q"],
       ["Cowboy", "cowboy.PNG", "5921X"],
@@ -169,9 +162,8 @@
       ["Salaam Alaykum", "salaamalaykum.PNG", "9205M"],
       ["Libra", "libra.PNG", "9205T"]
     ];
-
     profileview.innerHTML = profiles_views.map(([name, img]) => `
-      <div class="profilecolumn">
+      <div class="profilecolumn" data-name="${name}">
         <div class="profileimg">
           <img src="./images/${img}" alt="${name}">
         </div>
@@ -179,22 +171,14 @@
       </div>
     `).join("");
 
-    const avatarByName = new Map(profiles_users.map(([n, img]) => [n, img]));
-
-    /* ---------------- URL autofill (optional) ---------------- */
-    const params = new URLSearchParams(location.search);
-    const refUser = params.get("refusrname");
-    const refPass = params.get("refpassword");
-    if (refUser && refPass) { loginUser.value = refUser; loginCode.value = refPass; }
-
-    /* ---------------- Menu show/hide ---------------- */
+    /* Menu show/hide */
     function openMenu(){ menuEl.classList.add('is-open'); menuEl.setAttribute('aria-hidden','false'); }
     function closeMenu(){ menuEl.classList.remove('is-open'); menuEl.setAttribute('aria-hidden','true'); }
     menuOpen.addEventListener('click', openMenu);
     menuClose.addEventListener('click', closeMenu);
     menuEl.addEventListener('click', (e) => { if (e.target === menuEl) closeMenu(); });
 
-    /* ---------------- Auth ---------------- */
+    /* Auth */
     let currentUser = null;
 
     function setFormEnabled(enabled){
@@ -230,55 +214,36 @@
       const [n, img, c] = match;
       applyUser({ name:n, img, code:c });
       closeMenu();
-      // focus the input right away
       setTimeout(() => chatInput.focus(), 50);
     });
 
-    // Restore if present
-    try{
-      const saved = sessionStorage.getItem('dl_user');
-      if (saved){
-        const u = JSON.parse(saved);
-        const ok = profiles_users.some(([n,_i,c]) => n===u.name && c===u.code);
-        if (ok) applyUser(u);
+    /* Auto-login from URL, if valid */
+    (function autoLoginFromURL(){
+      const params = new URLSearchParams(location.search);
+      const refUser = params.get("refusrname");
+      const refPass = params.get("refpassword");
+      if (!refUser || !refPass) return;
+      const m = profiles_users.find(([n,_i,c]) => n === refUser && c === refPass);
+      if (m){
+        const [n, img, c] = m;
+        applyUser({ name:n, img, code:c });
+      } else {
+        // just prefill if not valid
+        loginUser.value = refUser;
+        loginCode.value = refPass;
       }
-    }catch{}
+    })();
 
-    /* ---------------- Feed layout helpers ---------------- */
-    const PLACEHOLDER_MSGS = 0; // change this if you want more/less buffer cards
-
-    function renderPlaceholders(n=0){
-      // remove old placeholders
-      messagesEl.querySelectorAll('.msg.placeholder').forEach(el => el.remove());
-      if (!n) return;
-      const frag = document.createDocumentFragment();
-      for (let i=0;i<n;i++){
-        const ph = document.createElement('div');
-        ph.className = 'msg placeholder';
-        ph.setAttribute('aria-hidden','true');
-        ph.innerHTML = `
-          <img class="avatar" src="./images/default-avatar.png" alt="">
-          <div class="bubble">
-            <div class="name">&nbsp;</div>
-            <div>&nbsp;</div>
-          </div>`;
-        frag.appendChild(ph);
-      }
-      messagesEl.appendChild(frag);
-    }
-
+    /* Feed layout helpers */
     function syncFeedPadding(){
       const h = composer.offsetHeight || 0;
-      messagesEl.style.paddingBottom = (h + 20) + 'px'; // 20px margin below as requested
+      messagesEl.style.paddingBottom = (h + 20) + 'px'; // 20px margin below
     }
-
-    function scrollToBottom(smooth=false){
+    function scrollToBottom(smooth){
       requestAnimationFrame(() => {
         messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
       });
     }
-
-    // keep things aligned on viewport changes (iOS keyboard etc.)
     syncFeedPadding();
     window.addEventListener('resize', syncFeedPadding);
     if (window.visualViewport){
@@ -288,7 +253,7 @@
     chatInput.addEventListener('focus', syncFeedPadding);
     chatInput.addEventListener('blur',  syncFeedPadding);
 
-    /* ---------------- Firestore (chat) ---------------- */
+    /* Firestore (chat) */
     const messagesRef = collection(db, 'messages');
     const q = query(messagesRef, orderBy('createdAt','asc'), limit(50));
     onSnapshot(q, (snap) => {
@@ -305,11 +270,12 @@
         const nm    = document.createElement('div'); nm.className = 'name'; nm.textContent = name;
         const body  = document.createElement('div'); body.textContent = chat;
 
-        bubble.append(nm, body);
-        row.append(av, bubble);
+        bubble.appendChild(nm);
+        bubble.appendChild(body);
+        row.appendChild(av);
+        row.appendChild(bubble);
         messagesEl.appendChild(row);
       });
-      renderPlaceholders(PLACEHOLDER_MSGS);
       syncFeedPadding();
       scrollToBottom();
     });
@@ -322,23 +288,19 @@
       await addDoc(messagesRef, { username: currentUser.name, chat, createdAt: serverTimestamp() });
       chatInput.value = '';
       chatInput.focus();
-      renderPlaceholders(PLACEHOLDER_MSGS);
       syncFeedPadding();
       scrollToBottom(true);
     });
 
-    /* ---------------- Push (manual click) ---------------- */
+    /* Push (manual) */
     const SW_PATH   = '/Dawah-Lumen/firebase-messaging-sw.js?v=3';
     const VAPID_KEY = 'BNUEVOAAfOuD3NrU9PgnZMWXL42hZqsrSCJqMZUNJtC2cx840YvnSdEFzJEL58-J6p02IHaj3eOe6y-bSCr48XY';
-
     enablePushBtn.addEventListener('click', async () => {
       try{
         const supported = await isSupported();
         if (!supported){ permStatus.textContent = 'Push not supported in this browser.'; return; }
         if (!('serviceWorker' in navigator)){ permStatus.textContent = 'No Service Worker support.'; return; }
-
         const reg = await navigator.serviceWorker.register(SW_PATH);
-
         let permission = Notification.permission;
         if (permission !== 'granted') permission = await Notification.requestPermission();
         permStatus.textContent = `Permission: ${permission}`;
@@ -352,7 +314,6 @@
         }else{
           permStatus.textContent = 'Failed to get token.';
         }
-
         onMessage(messaging, (payload) => {
           if (Notification.permission === 'granted'){
             new Notification(payload?.notification?.title || 'New message', { body: payload?.notification?.body || '' });
@@ -364,20 +325,17 @@
       }
     });
 
-    /* ---------------- Profiles tap-to-fill (optional) ---------------- */
-    // If you want tapping a profile to prefill login:
+    /* Profiles: tap → insert @Username into chat input */
     profileview.addEventListener('click', (e) => {
       const card = e.target.closest('.profilecolumn');
       if (!card) return;
-      const name = card.querySelector('.username_container p')?.textContent?.trim();
-      const found = profiles_users.find(([n]) => n === name);
-      if (found){
-        loginUser.value = found[0];
-        loginCode.value = found[2];
-        openMenu();
-      }
+      const name = card.getAttribute('data-name') || card.querySelector('.username_container p')?.textContent || '';
+      if (!name) return;
+      const pre = chatInput.value ? chatInput.value.replace(/\s+$/,'') + ' ' : '';
+      chatInput.value = pre + '@' + name + ' ';
+      chatInput.focus();
+      scrollToBottom(true);
     });
-
   </script>
 </body>
 </html>
